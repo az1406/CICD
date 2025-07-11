@@ -8,7 +8,11 @@ fastify.register(cors);
 // Set up PostgreSQL connection pool using DATABASE_URL from environment
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
+
 
 // Simple API route
 fastify.get('/api/message', async () => {
