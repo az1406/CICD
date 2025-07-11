@@ -38,33 +38,7 @@ jobs:
         with:
           host: 54.210.250.141
           username: ubuntu
-          key: "-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA1JKr4+SWl3b2ehHG/AwHzQ5nNYHb4I77CpPgyXXwI5FPpULf
-hmIWgDxY74HEVYUhyAWtL4lwmN4gpweCieCimyIU8wMQYxgqfsOXCuhD+0PYuSwe
-8UAqRxY71weEcKX4fU0SAyZxTokZmZW7jW1rEcPX3LB/kUWXa6SmQoVBSSRM/2Jd
-iQU7+cgDl+e4S3bNO3/mIzH18LjYxoj1f6Wq6wyXzBMpJlzq5UOZj3p2Xh1ljm/N
-qAbwcAgIH/lPXcglx9OouVm+R5UIrcZSUVtG9my1kdPiR2Gpza9AfTOao6wHiWKI
-fGdfAXXaktVYyCmLu4urRIe72ultSuxMHF8IyQIDAQABAoIBACpFIDko82kbFtgf
-QNpN6h80hgF12StGQ1VPIpvs/9uSwauzKI+oYaEOXwEBZPE8kAMeXdneEq3TPdr4
-+1Q/fxYqKNBKA7Aw1gJvElHw7dPBIg9wXpbKk52fJjcUH5nm5wrDkJlfw5hCWvzX
-cXwmDexybTJNRpC0re+Rxh3kMZ9BY5q0zsY3+jK2zgm25CKnL6o36ZTOArXyrlXL
-7YV38nnuB1fobeuIv374cuk7DHoB1EFWDPJzznORbjrspRJJuQkFC1bpzHX8Ot6f
-QfbQB8VCXgWiEJTZOOoA3Me4TCz4h6z7M16K3/XN134iHUqYhuMa/6XakL1LxK6/
-/2IsUAECgYEA/NNeoTwRvPBJ3j++kRgf6LIqyR+fKKQ8WC3FUYTkLuP29Wrk4m9+
-A2yP+nTrXpFD0Z2XyrQYH8nUDuii557ZHioILjlmyS8bmQRS4bSWOTbCQgUDoAHZ
-J04gaZwjp7kc88Z/YTx7IAvSqf8GQlnda2F1Cczl+ds+aeRMg5Nq5IkCgYEA1z3r
-+gBxXdNBeHemwm+e0pf0tGpbzvMeSMxsMvXG1CciLnE29lT9zbRDYNa1o+FQGrb3
-eb/moBoGrbKlI2flOJgEmJhdICjN94rDu5ySywMy86DtXfOfLvzF3chKLPV3kgC/
-oVKAT+smx11nJKOdWDn+D50lyvWFkoQ73x9GckECgYBwqHMrX4v76ArSaQ8uslRN
-qU6dbmTKhFyLYmHhkFjpeBVsiGRTbiD1v6NslDrpWcuhlRq1bYiuaY3/0rP8h/Dx
-mwMoLdXaYg5nIeEYyBKEjh0DtB5IZ2pvNEYHKVdN/pOjINlT59JpljsaGxSb7lVW
-6wdvBYmYy5RFNUDPBJqGGQKBgQCqnJ6sMCWsZYQD5XP9s1SFQYXqbFQRmoxqz/8D
-9eWAzPQ/M+aJI516rGSsIgUgvbwtMNLBYueACKE6ldxoUDZVwcoC2uMWVsHMceXs
-lJOW8BY3H1yHmFCZgiulPNnvATOiO42qZibnMlIuvU7AsCBMistjvQDz++HA3ahH
-mBbTAQKBgQD4ZDPjm8VajaX6icUTjP2QMQaweWCBSHnvR3eVHyod/831TD7i5BhP
-GpcovXbAdzUDGrniwpxlcr6++Doi6dsT878I9u5JyNRn5Zaj9di7/2ssuX9qgyO/
-jCQ7zhXFjrfdOPpPelfVRPdHbzSbigyuQedTBb40Fnvvz4VyjKsa1A==
------END RSA PRIVATE KEY-----"
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Create Docker network if not exists
             docker network create secret-notes-network || true
