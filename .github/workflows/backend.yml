@@ -49,8 +49,10 @@ jobs:
 
             # Run backend container
             docker run -d \
-              --name secret-notes-backend \
-              --network secret-notes-network \
-              -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes \
-              -p 3000:3000 \
-              azbraa/secret-notes-backend:latest
+            --name secret-notes-backend \
+            --network secret-notes-network \
+            --network-alias backend \
+            -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes \
+            -p 3000:3000 \
+            azbraa/secret-notes-backend:latest
+
