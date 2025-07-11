@@ -7,6 +7,7 @@ on:
       - Backend CI/CD
     types:
       - completed
+  workflow_dispatch:    # add this temporarily for manual trigger/testing
 
 jobs:
   deploy:
