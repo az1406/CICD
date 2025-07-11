@@ -3,7 +3,7 @@ const cors = require('@fastify/cors');
 
 fastify.register(cors);
 
-fastify.get('/api/message', async (request, reply) => {
+fastify.get('/api/message', async (_, reply) => {
   return { message: 'Hello from Node.js Fastify backend!' };
 });
 
