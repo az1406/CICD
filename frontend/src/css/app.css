@@ -1,0 +1,124 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f8;
+    color: #333;
+    padding: 20px;
+}
+
+#app {
+    max-width: 650px;
+    margin: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+}
+
+h1,
+h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.encrypt-container,
+.decrypt-container {
+    border: 2px solid #3498db;
+    padding: 20px;
+    margin: 25px 0;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: background 0.3s ease;
+}
+
+.encrypt-container:hover,
+.decrypt-container:hover {
+    background: #f9fbfc;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin: 12px 0 6px;
+}
+
+input,
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 4px;
+    font-size: 14px;
+    background: #fdfdfd;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+    outline: none;
+}
+
+button {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-size: 14px;
+}
+
+button:hover:not(:disabled) {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.note-container {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 0;
+    transition: background 0.2s ease;
+}
+
+.note-container:last-child {
+    border-bottom: none;
+}
+
+.note-container:hover {
+    background: #fafafa;
+}
+
+p {
+    background: #ecf0f1;
+    padding: 10px 12px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    margin-top: 8px;
+}
+
+.error-message {
+    color: #e74c3c;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #27ae60;
+    margin-top: 6px;
+    font-weight: 600;
+}

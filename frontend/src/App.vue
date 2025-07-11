@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="app">
     <h1>Secret Notes</h1>
     
     <!-- Encryption Container -->
@@ -21,7 +21,7 @@
         </button>
       </form>
       
-      <div v-if="createMessage">
+      <div v-if="createMessage" :class="['message', createMessage.includes('successfully') ? 'success' : 'error']">
         {{ createMessage }}
       </div>
     </div>
@@ -30,32 +30,32 @@
     <div class="decrypt-container">
       <h2>Decrypt Note</h2>
       
-      <div v-if="notes.length === 0">
+      <div v-if="notes.length === 0" class="no-notes">
         No notes available. Create a note first.
       </div>
       
       <div v-else>
-        <div v-for="note in notes" :key="note.id">
+        <div v-for="note in notes" :key="note.id" class="note-item">
           <h3>Note #{{ note.id }} - {{ new Date(note.created_at).toLocaleString() }}</h3>
           
-          <div v-if="!note.decrypted">
+          <div v-if="!note.decrypted" class="decrypt-form">
             <input 
               type="password" 
               v-model="note.decryptKey" 
               placeholder="Enter decryption key..."
               @keyup.enter="decryptNote(note)"
             />
-            <button @click="decryptNote(note)" :disabled="loading">
+            <button @click="decryptNote(note)" :disabled="loading" class="btn-secondary">
               Decrypt
             </button>
           </div>
           
-          <div v-else>
+          <div v-else class="note-content">
             <p><strong>Decrypted Content:</strong> {{ note.content }}</p>
-            <button @click="hideNote(note)">Hide Content</button>
+            <button @click="hideNote(note)" class="btn-secondary">Hide Content</button>
           </div>
           
-          <div v-if="note.error" style="color: red;">
+          <div v-if="note.error" class="error">
             {{ note.error }}
           </div>
         </div>
@@ -189,20 +189,5 @@ export default {
 </script>
 
 <style>
-/* Minimal styling */
-.encrypt-container, .decrypt-container {
-  border: 1px solid #ccc;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-input, textarea, button {
-  margin: 5px;
-  padding: 8px;
-}
-
-textarea {
-  width: 300px;
-  height: 100px;
-}
+@import './css/app.css';
 </style>
