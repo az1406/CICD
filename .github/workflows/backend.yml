@@ -40,6 +40,7 @@ jobs:
             docker network create secret-notes-network || true
 
             # Stop and remove old containers
+            
             docker rm -f secret-notes-backend || true
 
             # Pull latest images

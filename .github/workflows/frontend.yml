@@ -43,6 +43,7 @@ jobs:
             # Create Docker network if not exists
             docker network create secret-notes-network || true
 
+
             # Stop and remove old containers
             docker rm -f secret-notes-frontend || true
 
