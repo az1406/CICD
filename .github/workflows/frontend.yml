@@ -3,8 +3,7 @@ name: Frontend CI/CD
 on:
   push:
     branches:
-      - main
-      - deploy/production
+      - deploy
 
 jobs:
   build-deliver-deploy:
@@ -30,15 +29,3 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
-      #- name: Deploy to EC2
-       # uses: appleboy/ssh-action@v0.1.7
-        #with:
-         # host: ${{ secrets.EC2_HOST }}
-          #username: ubuntu
-          #key: ${{ secrets.EC2_SSH_KEY }}
-          #script: |
-           # cd ~/your-app-folder
-           # docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
-           # docker stop secret-notes-frontend || true
-            #docker rm secret-notes-frontend || true
-            #docker run -d --name secret-notes-frontend -p 8080:80 ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
