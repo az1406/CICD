@@ -39,18 +39,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create Docker network if not exists
-            docker network create secret-notes-network || true
-
+            
             # Stop and remove old containers
             docker rm -f secret-notes-frontend || true
             
             # Pull latest image
-            docker pull azbraa/secret-notes-frontend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
             # Run frontend container
             docker run -d \
             --name secret-notes-frontend \
             --network secret-notes-network \
             -p 8080:80 \
-            azbraa/secret-notes-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest

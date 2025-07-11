@@ -44,7 +44,7 @@ jobs:
             docker rm -f secret-notes-backend || true
 
             # Pull latest images
-            docker pull azbraa/secret-notes-backend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
             
 
             # Run backend container
@@ -54,5 +54,5 @@ jobs:
             --network-alias backend \
             -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes \
             -p 3000:3000 \
-            azbraa/secret-notes-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
