@@ -44,13 +44,13 @@ jobs:
 
             # Stop and remove old containers
             docker rm -f secret-notes-frontend || true
-
+            
             # Pull latest image
             docker pull azbraa/secret-notes-frontend:latest
 
             # Run frontend container
             docker run -d \
-              --name secret-notes-frontend \
-              --network secret-notes-network \
-              -p 8080:80 \
-              azbraa/secret-notes-frontend:latest
+            --name secret-notes-frontend \
+            --network secret-notes-network \
+            -p 8080:80 \
+            azbraa/secret-notes-frontend:latest
