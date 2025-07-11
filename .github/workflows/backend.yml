@@ -52,6 +52,7 @@ jobs:
             --name secret-notes-backend \
             --network secret-notes-network \
             --network-alias backend \
+            -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
             -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes?sslmode=require  \
             -p 3000:3000 \
             ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
