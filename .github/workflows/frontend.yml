@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Backend CI/CD"]
     types: [completed]
-    branches: [deploy]
   push:
     branches:
       - deploy
@@ -43,14 +42,13 @@ jobs:
             # Create Docker network if not exists
             docker network create secret-notes-network || true
 
-
             # Stop and remove old containers
             docker rm -f secret-notes-frontend || true
 
-            # Pull latest images
+            # Pull latest image
             docker pull azbraa/secret-notes-frontend:latest
-  
-           # Run frontend container
+
+            # Run frontend container
             docker run -d \
               --name secret-notes-frontend \
               --network secret-notes-network \
