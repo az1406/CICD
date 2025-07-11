@@ -1,6 +1,10 @@
 name: Frontend CI/CD
 
 on:
+  workflow_run:
+    workflows: ["Backend CI/CD"]
+    types: [completed]
+    branches: [deploy]
   push:
     branches:
       - deploy
