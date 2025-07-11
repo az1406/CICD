@@ -5,7 +5,7 @@ const { Client } = require('pg');
 fastify.register(cors);
 
 const db = new Client({
-  connectionString: process.env.DATABASE_URL, // or your connection string here
+  connectionString: 'postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes'
 });
 
 db.connect();
