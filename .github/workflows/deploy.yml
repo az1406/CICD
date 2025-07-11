@@ -47,7 +47,6 @@ GpcovXbAdzUDGrniwpxlcr6++Doi6dsT878I9u5JyNRn5Zaj9di7/2ssuX9qgyO/
 jCQ7zhXFjrfdOPpPelfVRPdHbzSbigyuQedTBb40Fnvvz4VyjKsa1A==
 -----END RSA PRIVATE KEY-----"
           script: |
-            script: |
             # Create Docker network if not exists
             docker network create secret-notes-network || true
 
