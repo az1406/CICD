@@ -166,7 +166,7 @@ export default {
       note.error = null;
 
       try {
-        const response = await fetch(/api/notes/${note.id}/decrypt, {
+        const response = await fetch(`/api/notes/${note.id}/decrypt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key: note.decryptKey })
