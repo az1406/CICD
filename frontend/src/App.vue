@@ -130,8 +130,12 @@ export default {
           this.createMessage = data.error || 'Failed to create note';
         }
       } catch (error) {
-        this.createMessage = 'Network error. Please try again.';
+        console.error('Failed to create note:', error);
+        note.error = 'Network error. Please try again.';
+      } finally {
+        this.loading = false;
       }
+      
 
       this.loading = false;
     },
@@ -152,7 +156,10 @@ export default {
           console.error('Error fetching notes:', data.error);
         }
       } catch (error) {
-        console.error('Failed to fetch notes:', error);
+        console.error('Failed to fetch note:', error);
+        note.error = 'Network error. Please try again.';
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -186,7 +193,6 @@ export default {
           note.error = data.error || 'Failed to decrypt note';
         }
       } catch (error) {
-        // Properly handle the exception by logging it
         console.error('Failed to decrypt note:', error);
         note.error = 'Network error. Please try again.';
       } finally {
