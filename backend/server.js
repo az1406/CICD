@@ -16,7 +16,7 @@ const pool = new Pool({
 
 // Fixed encryption functions
 function encrypt(text, key) {
-  const algorithm = 'aes-256-cbc';
+  const algorithm = 'AES-256-GCM';
   const keyBuffer = crypto.createHash('sha256').update(key).digest();
   const iv = crypto.randomBytes(16);
 
@@ -72,7 +72,7 @@ fastify.get('/api/message', async () => {
 
 fastify.get('/api/health', async () => {
   try {
-    const response = await pool.query('SELECT 1');
+    await pool.query('SELECT 1');
 
     return {
       status: 'healthy',
