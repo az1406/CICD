@@ -31,7 +31,6 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - /app/node_modules
     restart: unless-stopped
 
   frontend:

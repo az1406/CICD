@@ -16,6 +16,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: http://18.204.164.224:9000
+        with:
+          projectBaseDir: ./frontend
+
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -39,21 +48,12 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create Docker network if not exists
-             docker network create secret-notes-network || true
-  
-            # Stop and remove old containers
+            docker network create secret-notes-network || true
             docker rm -f secret-notes-frontend || true
-            
-            # Pull latest image
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
-            
-            # Run frontend container
             docker run -d \
-            --name secret-notes-frontend \
-            --network secret-notes-network \
-            -e NODE_ENV=production \
-            -p 8080:80 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
-
-
+              --name secret-notes-frontend \
+              --network secret-notes-network \
+              -e NODE_ENV=production \
+              -p 8080:80 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
