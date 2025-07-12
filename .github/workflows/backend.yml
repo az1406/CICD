@@ -34,9 +34,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: http://18.204.164.224:9000
-          SONAR_PROJECT_KEY: secret-notes-backend
         with:
           projectBaseDir: ./backend
+          args: >
+            -Dsonar.projectKey=secret-notes-frontend
 
 
 
