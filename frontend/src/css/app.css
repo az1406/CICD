@@ -138,6 +138,14 @@ p {
     background: #219a52 !important;
 }
 
+.green-theme button {
+    background: #27ae60 !important;
+}
+
+.green-theme button:hover:not(:disabled) {
+    background: #1e8449 !important;
+}
+
 .green-theme input:focus,
 .green-theme textarea:focus {
     border-color: #27ae60 !important;
