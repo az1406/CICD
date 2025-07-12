@@ -1,7 +1,3 @@
-const request = require('supertest');
-const fastify = require('fastify')({ logger: false });
-const cors = require('@fastify/cors');
-const { Pool } = require('pg');
 const crypto = require('crypto');
 
 // Mock the database pool
@@ -16,18 +12,11 @@ jest.mock('pg', () => ({
 let app;
 
 beforeAll(async () => {
+  const fastify = require('fastify')({ logger: false });
+  const cors = require('@fastify/cors');
+
   app = fastify;
   await app.register(cors);
-
-  // Mock database connection
-  const mockClient = {
-    query: jest.fn(),
-    release: jest.fn(),
-  };
-
-  const mockPool = {
-    connect: jest.fn().mockResolvedValue(mockClient),
-  };
 
   // Add encryption functions (copy from server.js)
   function encrypt(text, key) {
@@ -277,7 +266,6 @@ describe('Secret Notes API', () => {
       url: '/api/notes'
     });
 
-
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
     expect(body.notes).toBeDefined();
@@ -290,4 +278,3 @@ describe('Secret Notes API', () => {
     }
   });
 });
-

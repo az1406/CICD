@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+
 
 // Mock fetch for API calls
 global.fetch = vi.fn()
@@ -137,7 +137,7 @@ describe('Encryption Utilities', () => {
 
     it('should simulate content encryption', () => {
         const originalContent = 'This is a secret note'
-        const key = 'test-key-123'
+
 
         // Simple simulation of encryption (reversing string)
         const encryptedContent = originalContent.split('').reverse().join('')
