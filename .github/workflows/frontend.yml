@@ -37,6 +37,27 @@ jobs:
         working-directory: ./frontend
         run: snyk test --all-projects
 
+  test:
+        needs: linting
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+
+          - name: Set up Node.js
+            uses: actions/setup-node@v3
+            with:
+              node-version: '18'
+
+          - name: Install dependencies
+            run: npm install
+            working-directory: ./frontend
+
+          - name: Run tests
+            run: npm test
+            working-directory: ./frontend
+
   build:
     needs: linting
     runs-on: ubuntu-latest
