@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - deploy/production
+      - deploy
   workflow_run:
     workflows: ["Backend CI/CD"]
     types: [completed]
@@ -40,7 +40,7 @@ jobs:
   build:
     needs: linting
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -58,7 +58,7 @@ jobs:
   deliver:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: github.ref == 'refs/heads/deploy'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -79,7 +79,7 @@ jobs:
   deploy:
     needs: deliver
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: github.ref == 'refs/heads/deploy'
     steps:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
