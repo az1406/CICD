@@ -1,3 +1,10 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - deploy
+
 jobs:
   build-deliver-deploy:
     runs-on: ubuntu-latest
