@@ -19,6 +19,8 @@ beforeAll(async () => {
   await app.register(cors);
 
   // Add encryption functions (copy from server.js)
+  const crypto = require('crypto');
+
   function encrypt(text, key) {
     const algorithm = 'aes-256-cbc';
     const keyBuffer = crypto.createHash('sha256').update(key).digest();
