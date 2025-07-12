@@ -1,17 +1,18 @@
 name: Frontend CI/CD
 
 on:
+  push:
+    branches:
+      - main
+      - deploy/production
   workflow_run:
     workflows: ["Backend CI/CD"]
     types: [completed]
-  push:
-    branches:
-      - deploy
 
 jobs:
-  build-deliver-deploy:
+  linting:
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,18 +30,38 @@ jobs:
       - name: Install Snyk CLI
         run: npm install -g snyk
 
-
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
 
       - name: Snyk Test (Code & Dependencies)
         working-directory: ./frontend
         run: snyk test --all-projects
 
+  build:
+    needs: linting
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: false
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+
+  deliver:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -48,13 +69,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Push Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
+  deploy:
+    needs: deliver
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
