@@ -122,3 +122,21 @@ p {
     margin-top: 6px;
     font-weight: 600;
 }
+
+/* Green theme toggle for A/B test */
+.green-theme {
+    background: #e9f7ef !important;
+}
+
+.green-theme .encrypt-container,
+.green-theme .decrypt-container {
+    border-color: #27ae60 !important;
+}
+
+.green-theme button {
+    background: #27ae60 !important;
+}
+
+.green-theme button:hover:not(:disabled) {
+    background: #1e8449 !important;
+}

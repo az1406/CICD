@@ -1,7 +1,8 @@
+app.vue:
 <template>
-  <div class="app">
+  <div class="app" :class="{ 'green-theme': isGreenTheme }">
     <h1>Secret Notes</h1>
-    
+
     <!-- Encryption Container -->
     <div class="encrypt-container">
       <h2>Encrypt Note</h2>
@@ -10,17 +11,17 @@
           <label>Note Content:</label>
           <textarea v-model="newNote.content" placeholder="Enter your secret note..." required></textarea>
         </div>
-        
+
         <div>
           <label>Encryption Key:</label>
           <input type="password" v-model="newNote.key" placeholder="Enter encryption key..." required />
         </div>
-        
+
         <button type="submit" :disabled="loading">
           {{ loading ? 'Encrypting...' : 'Encrypt Note' }}
         </button>
       </form>
-      
+
       <div v-if="createMessage" :class="['message', createMessage.includes('successfully') ? 'success' : 'error']">
         {{ createMessage }}
       </div>
@@ -29,19 +30,19 @@
     <!-- Decryption Container -->
     <div class="decrypt-container">
       <h2>Decrypt Note</h2>
-      
+
       <div v-if="notes.length === 0" class="no-notes">
         No notes available. Create a note first.
       </div>
-      
+
       <div v-else>
         <div v-for="note in notes" :key="note.id" class="note-item">
           <h3>Note #{{ note.id }} - {{ new Date(note.created_at).toLocaleString() }}</h3>
-          
+
           <div v-if="!note.decrypted" class="decrypt-form">
-            <input 
-              type="password" 
-              v-model="note.decryptKey" 
+            <input
+              type="password"
+              v-model="note.decryptKey"
               placeholder="Enter decryption key..."
               @keyup.enter="decryptNote(note)"
             />
@@ -49,12 +50,12 @@
               Decrypt
             </button>
           </div>
-          
+
           <div v-else class="note-content">
             <p><strong>Decrypted Content:</strong> {{ note.content }}</p>
             <button @click="hideNote(note)" class="btn-secondary">Hide Content</button>
           </div>
-          
+
           <div v-if="note.error" class="error">
             {{ note.error }}
           </div>
@@ -65,53 +66,65 @@
 </template>
 
 <script>
+import posthog from './posthog';
+
 export default {
   name: 'SecretNotesApp',
-  
   data() {
     return {
       loading: false,
-      newNote: {
-        content: '',
-        key: ''
-      },
+      newNote: { content: '', key: '' },
       notes: [],
-      createMessage: null
+      createMessage: null,
+      isGreenTheme: false,
     };
   },
-  
-  async mounted() {
-    await this.fetchNotes();
+
+  mounted() {
+    // Set initial state
+    this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
+
+    // Listen for feature flag updates
+    posthog.onFeatureFlags(() => {
+      this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
+    });
+
+    this.fetchNotes();
   },
-  
+
   methods: {
     async createNote() {
       if (!this.newNote.content.trim() || !this.newNote.key.trim()) {
         this.createMessage = 'Please fill in all fields';
         return;
       }
-      
+
       this.loading = true;
       this.createMessage = null;
-      
+
       try {
+        const noteContentLength = this.newNote.content.length; // save before clearing
+
         const response = await fetch('/api/notes', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             content: this.newNote.content,
             key: this.newNote.key
           })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
-          this.createMessage = `Note encrypted successfully!`;
+          this.createMessage = "Note encrypted successfully!";
           this.newNote.content = '';
           this.newNote.key = '';
+
+          posthog.capture('note_encrypted', {
+            length: noteContentLength
+          });
+
           await this.fetchNotes();
         } else {
           this.createMessage = data.error || 'Failed to create note';
@@ -119,15 +132,14 @@ export default {
       } catch (error) {
         this.createMessage = 'Network error. Please try again.';
       }
-      
+
       this.loading = false;
     },
-    
+
     async fetchNotes() {
       try {
         const response = await fetch('/api/notes');
-        const data = await response.json();
-        
+        const data = await response.json();  // <-- Error happens here
         if (response.ok) {
           this.notes = data.notes.map(note => ({
             ...note,
@@ -136,48 +148,50 @@ export default {
             content: '',
             error: null
           }));
+        } else {
+          console.error('Error fetching notes:', data.error);
         }
       } catch (error) {
         console.error('Failed to fetch notes:', error);
       }
     },
-    
+
     async decryptNote(note) {
       if (!note.decryptKey.trim()) {
         note.error = 'Please enter a decryption key';
         return;
       }
-      
+
       this.loading = true;
       note.error = null;
-      
+
       try {
-        const response = await fetch(`/api/notes/${note.id}/decrypt`, {
+        const response = await fetch(/api/notes/${note.id}/decrypt, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            key: note.decryptKey
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: note.decryptKey })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
           note.content = data.content;
           note.decrypted = true;
           note.decryptKey = '';
+
+          posthog.capture('note_decrypted', {
+            note_id: note.id
+          });
         } else {
           note.error = data.error || 'Failed to decrypt note';
         }
       } catch (error) {
         note.error = 'Network error. Please try again.';
       }
-      
+
       this.loading = false;
     },
-    
+
     hideNote(note) {
       note.decrypted = false;
       note.content = '';
@@ -187,6 +201,7 @@ export default {
   }
 };
 </script>
+
 
 <style>
 @import './css/app.css';

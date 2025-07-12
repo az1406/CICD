@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "posthog-js": "^1.257.0",
     "vue": "^3.5.17"
   },
   "devDependencies": {
