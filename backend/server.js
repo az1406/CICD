@@ -72,9 +72,7 @@ fastify.get('/api/message', async () => {
 
 fastify.get('/api/health', async () => {
   try {
-    const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    const response = await pool.query('SELECT 1');
 
     return {
       status: 'healthy',
@@ -105,12 +103,10 @@ fastify.post('/api/notes', async (request, reply) => {
     const encryptedContent = encrypt(content, key);
     const keyHash = crypto.createHash('sha256').update(key).digest('hex');
 
-    const client = await pool.connect();
-    const result = await client.query(
+    const result = await pool.query(
       'INSERT INTO notes (encrypted_content, key_hash) VALUES ($1, $2) RETURNING id, created_at',
       [encryptedContent, keyHash]
     );
-    client.release();
 
     return {
       id: result.rows[0].id,
@@ -138,12 +134,10 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
       });
     }
 
-    const client = await pool.connect();
-    const result = await client.query(
+    const result = await pool.query(
       'SELECT encrypted_content, key_hash FROM notes WHERE id = $1',
       [id]
     );
-    client.release();
 
     if (result.rows.length === 0) {
       return reply.status(404).send({
@@ -178,11 +172,9 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
 // List all notes
 fastify.get('/api/notes', async (request, reply) => {
   try {
-    const client = await pool.connect();
-    const result = await client.query(
+    const result = await pool.query(
       'SELECT id, created_at FROM notes ORDER BY created_at DESC'
     );
-    client.release();
 
     return {
       notes: result.rows
@@ -208,3 +200,5 @@ const start = async () => {
 };
 
 start();
+
+module.exports = fastify; // export for testing
