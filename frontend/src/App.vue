@@ -179,17 +179,19 @@ export default {
           note.decrypted = true;
           note.decryptKey = '';
 
-          posthog.capture('note_decrypted', {
+          this.$posthog.capture('note_decrypted', {
             note_id: note.id
           });
         } else {
           note.error = data.error || 'Failed to decrypt note';
         }
       } catch (error) {
+        // Properly handle the exception by logging it
+        console.error('Failed to decrypt note:', error);
         note.error = 'Network error. Please try again.';
+      } finally {
+        this.loading = false;
       }
-
-      this.loading = false;
     },
 
     hideNote(note) {
