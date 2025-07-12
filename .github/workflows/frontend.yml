@@ -12,7 +12,7 @@ on:
 jobs:
   linting:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
