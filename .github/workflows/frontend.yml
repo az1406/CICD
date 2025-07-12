@@ -127,3 +127,42 @@ jobs:
               -e NODE_ENV=production \
               -p 8080:80 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+
+  performance-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Pull k6 Docker image
+        run: docker pull grafana/k6:latest
+
+      - name: Wait for application to be ready
+        run: |
+          echo "Waiting for application to be ready..."
+          for i in {1..15}; do  # Reduced from 30 to 15 attempts
+            if curl -f http://18.204.164.224:8080/api/health; then
+              echo "Application is ready!"
+              break
+            fi
+            echo "Attempt $i: Application not ready yet, waiting..."
+            sleep 5  # Reduced from 10 to 5 seconds
+          done
+
+      - name: Run k6 Smoke Tests (30s)
+        run: |
+          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:latest \
+            run --env BASE_URL=http://18.204.164.224:8080 /app/smoke-test.js
+
+      - name: Run k6 Performance Tests (30s)
+        run: |
+          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:latest \
+            run --env BASE_URL=http://18.204.164.224:8080 /app/performance-tests.js
+
+      - name: Run k6 Light Load Tests (1m)
+        run: |
+          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:latest \
+            run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
+        continue-on-error: true
