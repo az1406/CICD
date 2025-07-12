@@ -1,16 +1,18 @@
 name: Frontend CI/CD
 
 on:
+  push:
+    branches:
+      - main
+      - deploy/production
   workflow_run:
     workflows: ["Backend CI/CD"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   linting:
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'deploy/production')
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
