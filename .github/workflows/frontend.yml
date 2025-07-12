@@ -1,12 +1,13 @@
 name: Frontend CI/CD
 
 on:
-  workflow_run:
-    workflows: ["Backend CI/CD"]
-    types: [completed]
+  push:
     branches:
       - main
       - deploy/production
+  workflow_run:
+    workflows: ["Backend CI/CD"]
+    types: [completed]
 
 jobs:
   linting:
