@@ -53,9 +53,9 @@ jobs:
 
       - name: Run tests
         run: npm test -- --watchAll=false
-        working-directory: ./backend
+        working-directory: ./backend/test
   build:
-    needs: linting
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
     steps:

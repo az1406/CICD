@@ -56,10 +56,10 @@ jobs:
 
           - name: Run tests
             run: npm test
-            working-directory: ./frontend
+            working-directory: ./frontend/test
 
   build:
-    needs: linting
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
     steps:
