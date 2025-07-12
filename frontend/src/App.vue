@@ -84,7 +84,7 @@ export default {
     // Set initial state
     this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
 
-    // Listen for feature flag updates
+    // Listen for feature flag updates 
     posthog.onFeatureFlags(() => {
       this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
     });
