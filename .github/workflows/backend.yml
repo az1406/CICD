@@ -53,7 +53,7 @@ jobs:
 
       - name: Run tests
         run: npm test -- --watchAll=false
-        working-directory: ./backend/test
+        working-directory: ./backend
   build:
     needs: test
     runs-on: ubuntu-latest
