@@ -11,7 +11,9 @@ on:
 
 jobs:
   linting:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production') }}
+    if: |
+        (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production')) ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
