@@ -16,7 +16,7 @@ const pool = new Pool({
 
 // Fixed encryption functions
 function encrypt(text, key) {
-  const algorithm = 'AES-256-GCM';
+  const algorithm = 'aes-256-cbc';
   const keyBuffer = crypto.createHash('sha256').update(key).digest();
   const iv = crypto.randomBytes(16);
 
@@ -128,6 +128,8 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
     const { id } = request.params;
     const { key } = request.body;
 
+    fastify.log.info(`Decrypt request - ID: ${id}, Key provided: ${!!key}`);
+
     if (!key) {
       return reply.status(400).send({
         error: 'Decryption key is required'
@@ -139,6 +141,8 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
       [id]
     );
 
+    fastify.log.info(`Database query result: ${result.rows.length} rows`);
+
     if (result.rows.length === 0) {
       return reply.status(404).send({
         error: 'Note not found'
@@ -148,18 +152,28 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
     const { encrypted_content, key_hash } = result.rows[0];
     const providedKeyHash = crypto.createHash('sha256').update(key).digest('hex');
 
+    fastify.log.info(`Key hash match: ${providedKeyHash === key_hash}`);
+
     if (providedKeyHash !== key_hash) {
       return reply.status(401).send({
         error: 'Invalid decryption key'
       });
     }
 
-    const decryptedContent = decrypt(encrypted_content, key);
+    try {
+      const decryptedContent = decrypt(encrypted_content, key);
+      fastify.log.info('Decryption successful');
 
-    return {
-      content: decryptedContent,
-      message: 'Note decrypted successfully'
-    };
+      return {
+        content: decryptedContent,
+        message: 'Note decrypted successfully'
+      };
+    } catch (decryptError) {
+      fastify.log.error('Decryption error:', decryptError.message);
+      return reply.status(500).send({
+        error: 'Decryption failed: ' + decryptError.message
+      });
+    }
 
   } catch (err) {
     fastify.log.error('Error decrypting note:', err.message);
