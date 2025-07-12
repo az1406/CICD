@@ -37,7 +37,7 @@ jobs:
         with:
           projectBaseDir: ./backend
           args: >
-            -Dsonar.projectKey=secret-notes-frontend
+            -Dsonar.projectKey=secret-notes-backend
 
 
 
