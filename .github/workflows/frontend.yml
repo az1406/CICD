@@ -130,7 +130,7 @@ jobs:
               --name secret-notes-frontend \
               --network secret-notes-network \
               -e NODE_ENV=production \
-              -p ${{ env.FRONTEND_PORT:80 }} \
+              -p ${{ env.FRONTEND_PORT }}:80 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
   e2e-performance-test:
@@ -172,28 +172,28 @@ jobs:
       - name: Run k6 Smoke Tests (30s)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=${{ http://env.HOST:env.FRONTEND_PORT }} /app/smoke-test.js
+            run --env BASE_URL=http://${{ env.HOST }}:${{ env.FRONTEND_PORT }} /app/smoke-test.js
 
       - name: Run k6 Performance Tests (30s)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=${{ http://env.HOST:env.FRONTEND_PORT }} /app/performance-tests.js
+            run --env BASE_URL=http://${{ env.HOST }}:${{ env.FRONTEND_PORT }} /app/performance-tests.js
 
       - name: Run k6 Load Tests (1m)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=${{ http://env.HOST:env.FRONTEND_PORT }} /app/load-test.js
+            run --env BASE_URL=http://${{ env.HOST }}:${{ env.FRONTEND_PORT }} /app/load-test.js
 
       - name: Run Playwright E2E tests
         run: npx playwright test __tests__/e2e
         working-directory: ./frontend
         env:
-          E2E_BASE_URL: ${{ http://env.HOST:env.FRONTEND_PORT }}
+          E2E_BASE_URL: http://${{ env.HOST }}:${{ env.FRONTEND_PORT }}
         
       - name: Cleanup test data
         if: always()
         run: |
-          curl -X DELETE ${{ http://env.HOST:env.FRONTEND_PORT/api/test-data }} || echo "Cleanup failed or not available"
+          curl -X DELETE http://${{ env.HOST }}:${{ env.FRONTEND_PORT/api/test-data }} || echo "Cleanup failed or not available"
 
   notify-on-failure:
     needs: [linting, test, build, deliver, deploy, e2e-performance-test]
