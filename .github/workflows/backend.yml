@@ -164,7 +164,7 @@ jobs:
           script: |
             cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
             server {
-                listen 3001;
+                listen 3101;
                 server_name _;
                 location / {
                     proxy_pass http://localhost:3100;
@@ -191,7 +191,7 @@ jobs:
           script: |
             cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
             server {
-                listen 3001;
+                listen 3101;
                 server_name _;
                 location / {
                     proxy_pass http://localhost:3000;
