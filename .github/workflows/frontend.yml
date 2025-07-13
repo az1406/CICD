@@ -212,25 +212,21 @@ jobs:
         run: |
           curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
-  switch-traffic:
+  switch-traffic-green:
     needs: e2e-performance-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
+    strategy:
+      matrix:
+        ENVIRONMENT: [green]
     steps:
-      - name: Switch traffic to alternate environment (Blue/Green)
+      - name: Switch traffic to Green (overwrite NGINX config)
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            FLAG_FILE=/tmp/active_env_frontend.txt
-            if [ -f "$FLAG_FILE" ]; then
-              ACTIVE=$(cat $FLAG_FILE)
-            else
-              ACTIVE=blue
-            fi
-            if [ "$ACTIVE" = "blue" ]; then
             cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
             server {
                 listen 80;
@@ -247,8 +243,22 @@ jobs:
                 }
             }
             EOT
-                          echo green | sudo tee $FLAG_FILE
-                        else
+            sudo systemctl reload nginx
+  switch-traffic-blue:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        ENVIRONMENT: [blue]
+    steps:
+      - name: Switch traffic to Blue (overwrite NGINX config)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
             cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
             server {
                 listen 80;
@@ -265,8 +275,6 @@ jobs:
                 }
             }
             EOT
-              echo blue | sudo tee $FLAG_FILE
-            fi
             sudo systemctl reload nginx
 
   notify-on-failure:
