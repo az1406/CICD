@@ -1,9 +1,14 @@
-# Simple frontend Dockerfile for Vite-built Vue app
+# filepath: frontend/Dockerfile
 FROM node:20-alpine AS build
 WORKDIR /app
+
+# Copy package files first for better caching
 COPY package*.json ./
+RUN npm install
+
+# Then copy source code
 COPY . .
-RUN npm install && npm run build
+RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html

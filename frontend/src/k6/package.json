@@ -1,0 +1,20 @@
+{
+    "name": "secret-notes-k6-tests",
+    "version": "1.0.0",
+    "description": "Performance tests for Secret Notes application",
+    "scripts": {
+        "test:smoke": "k6 run smoke-test.js",
+        "test:performance": "k6 run performance-tests.js",
+        "test:load": "k6 run load-test.js",
+        "test:staging": "k6 run --env BASE_URL=http://18.204.164.224:8080 performance-tests.js",
+        "test:staging-load": "k6 run --env BASE_URL=http://18.204.164.224:8080 load-test.js"
+    },
+    "keywords": [
+        "k6",
+        "performance",
+        "testing",
+        "secret-notes"
+    ],
+    "author": "",
+    "license": "ISC"
+}

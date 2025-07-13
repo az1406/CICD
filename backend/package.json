@@ -1,19 +1,22 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "description": "Secret Notes API Backend",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "jest",
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [],
+  "keywords": ["api", "encryption", "notes", "fastify"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@fastify/cors": "^11.0.1",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "fastify": "^5.4.0"
+    "fastify": "^5.4.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "jest": "^30.0.4"
   }
 }

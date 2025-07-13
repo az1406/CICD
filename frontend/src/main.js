@@ -1,5 +1,10 @@
 import { createApp } from 'vue';
 import App from './App.vue';
+import posthog from './posthog';
 
-createApp(App).mount('#app');
+const app = createApp(App);
 
+app.config.globalProperties.$posthog = posthog;
+window.posthog = posthog;
+
+app.mount('#app');

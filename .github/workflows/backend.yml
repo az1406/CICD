@@ -7,9 +7,66 @@ on:
       - deploy/production
 
 jobs:
-  build-deliver-deploy:
+  linting:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: http://18.204.164.224:9000
+        with:
+          projectBaseDir: ./backend
+          args: >
+            -Dsonar.projectKey=secret-notes-backend
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Test (Code & Dependencies)
+        working-directory: ./backend
+        run: snyk test --all-projects
+  test:
+
+    needs: linting
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Run tests
+        run: npm test -- --watchAll=false
+        working-directory: ./backend
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,28 +74,56 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: false
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+
+  deliver:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Push Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
-      #- name: Deploy to EC2
-       # uses: appleboy/ssh-action@v0.1.7
-        #with:
-         # host: ${{ secrets.EC2_HOST }}
-          #username: ubuntu
-          #key: ${{ secrets.EC2_SSH_KEY }}
-          #script: |
-           # cd ~/your-app-folder
-            #docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
-            #docker stop secret-notes-backend || true
-            #docker rm secret-notes-backend || true
-            #docker run -d --name secret-notes-backend -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+  deploy:
+    needs: deliver
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 18.204.164.224
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker network create secret-notes-network || true
+            docker rm -f secret-notes-backend || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+            docker run -d \
+              --name secret-notes-backend \
+              --network secret-notes-network \
+              --network-alias backend \
+              -e NODE_ENV=production \
+              -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
+              -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes?sslmode=require \
+              -p 3000:3000 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+
