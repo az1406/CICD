@@ -54,7 +54,8 @@ async function initDatabase() {
         id SERIAL PRIMARY KEY,
         encrypted_content TEXT NOT NULL,
         key_hash VARCHAR(64) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+        created_at TIMESTAMP DEFAULT NOW(),
+        user_id VARCHAR(64)
       )
     `);
 
