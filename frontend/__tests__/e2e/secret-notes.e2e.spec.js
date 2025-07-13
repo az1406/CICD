@@ -16,21 +16,21 @@ test.describe('Secret Notes E2E', () => {
     test('User can decrypt a note with correct key', async ({ page }) => {
         await page.goto(BASE_URL);
 
-        await page.getByPlaceholder('Enter your secret note...').fill('Decrypt me!');
+        const uniqueContent = `Decrypt me! ${Date.now()}`;
+        await page.getByPlaceholder('Enter your secret note...').fill(uniqueContent);
         await page.getByPlaceholder('Enter encryption key...').fill('right-key');
         await page.getByRole('button', { name: /encrypt note/i }).click();
         await expect(page.getByText(/note encrypted successfully/i)).toBeVisible();
 
-        await expect(page.locator('.note-item input[placeholder="Enter decryption key..."]').first()).toBeVisible();
-
-        const decryptInput = page.locator('.note-item input[placeholder="Enter decryption key..."]').first();
-        const decryptButton = page.locator('.note-item button', { hasText: 'Decrypt' }).first();
+        const firstNote = page.locator('.note-item').first();
+        const decryptInput = firstNote.locator('input[placeholder="Enter decryption key..."]');
+        const decryptButton = firstNote.locator('button', { hasText: 'Decrypt' });
 
         await decryptInput.fill('right-key');
         await decryptButton.click();
 
-        await expect(page.getByText(/decrypted content:/i)).toBeVisible();
-        await expect(page.getByText('Decrypt me!')).toBeVisible();
+        await expect(firstNote.getByText(/decrypted content:/i)).toBeVisible();
+        await expect(firstNote.getByText(uniqueContent)).toBeVisible();
     });
 
     test('User sees error with wrong decryption key', async ({ page }) => {
