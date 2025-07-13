@@ -116,6 +116,9 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
+    strategy:
+      matrix:
+        ENVIRONMENT: [blue, green]
     steps:
       - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
