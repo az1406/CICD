@@ -147,7 +147,7 @@ jobs:
               -p $PORT:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
-  switch-traffic:
+  switch-traffic-green:
     needs: deploy
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'

@@ -186,17 +186,17 @@ jobs:
             sleep 5
           done
 
-      - name: Run k6 Smoke Tests (30s)
+      - name: Run k6 Smoke Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://${{ env.HOST }} /app/smoke-test.js
 
-      - name: Run k6 Performance Tests (30s)
+      - name: Run k6 Performance Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://${{ env.HOST }} /app/performance-tests.js
 
-      - name: Run k6 Load Tests (1m)
+      - name: Run k6 Load Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://${{ env.HOST }} /app/load-test.js
@@ -212,7 +212,7 @@ jobs:
         run: |
           curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
-  switch-traffic:
+  switch-traffic-green:
     needs: e2e-performance-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
