@@ -176,7 +176,7 @@ describe('Note Management', () => {
             { id: 3, created_at: '2023-01-02T00:00:00Z' }
         ]
 
-        const sortedNotes = notes.sort((a, b) =>
+        const sortedNotes = notes.toSorted((a, b) =>
             new Date(b.created_at) - new Date(a.created_at)
         )
 
