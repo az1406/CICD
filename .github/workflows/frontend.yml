@@ -212,7 +212,7 @@ jobs:
         run: |
           curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
-  switch-traffic-green:
+  switch-traffic:
     needs: deploy
     runs-on: ubuntu-latest
     if: always()
