@@ -30,7 +30,9 @@ pipeline {
         stage('Test') {
             steps {
                 dir('backend') {
-                    sh 'npm test -- --watchAll=false'
+                    withEnv(['PORT=4000']) {
+                        sh 'npm test -- --watchAll=false'
+                  }
                 }
             }
         }
