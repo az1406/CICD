@@ -153,17 +153,17 @@ jobs:
 
       - name: Run k6 Smoke Tests (30s)
         run: |
-          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:1.1.0 \
+          docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/smoke-test.js
 
       - name: Run k6 Performance Tests (30s)
         run: |
-          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:1.1.0 \
+          docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/performance-tests.js
 
       - name: Run k6 Load Tests (1m)
         run: |
-          docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:1.1.0 \
+          docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
 
       - name: Cleanup test data
