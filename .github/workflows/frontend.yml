@@ -277,6 +277,65 @@ jobs:
             EOT
             sudo systemctl reload nginx
 
+  switch-traffic:
+    needs: e2e-performance-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Switch traffic to alternate environment (Blue/Green)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            FLAG_FILE=/tmp/active_env.txt
+            if [ -f "$FLAG_FILE" ]; then
+              ACTIVE=$(cat $FLAG_FILE)
+            else
+              ACTIVE=blue
+            fi
+            if [ "$ACTIVE" = "blue" ]; then
+              # Switch to green
+              cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
+              server {
+                  listen 80;
+                  server_name _;
+                  location / {
+                      proxy_pass http://localhost:8180;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                  }
+                  location /api/ {
+                      proxy_pass http://localhost:8180;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                  }
+              }
+              EOT
+              echo green | sudo tee $FLAG_FILE
+            else
+              # Switch to blue
+              cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
+              server {
+                  listen 80;
+                  server_name _;
+                  location / {
+                      proxy_pass http://localhost:8080;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                  }
+                  location /api/ {
+                      proxy_pass http://localhost:8080;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                  }
+              }
+              EOT
+              echo blue | sudo tee $FLAG_FILE
+            fi
+            sudo systemctl reload nginx
+
   notify-on-failure:
     needs: [linting, test, build, deliver, deploy, e2e-performance-test]
     if: failure()
