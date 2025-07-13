@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - deploy/production 
+      - deploy/production
 
 jobs:
   linting:
@@ -24,7 +24,7 @@ jobs:
         working-directory: ./frontend
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: http://18.204.164.224:9000
@@ -185,3 +185,27 @@ jobs:
       - name: Cleanup test data
         run: |
           curl -X DELETE http://18.204.164.224:8080/api/test-data || echo "Cleanup failed or not available"
+
+  notify-on-failure:
+    needs: [linting, test, build, deliver, deploy, performance-test]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+              {
+                "text": ":rotating_light: *CI/CD Pipeline Failed!*",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": ":x: *Pipeline failed for* `${{ github.repository }}` on branch `${{ github.ref_name }}`.\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View the logs>"
+                    }
+                  }
+                ]
+              }
+        env:
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
