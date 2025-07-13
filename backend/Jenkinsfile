@@ -20,8 +20,9 @@ pipeline {
                 dir('backend') {
                     sh 'npm install'
                     sh 'npm install snyk'
-                    sh 'snyk auth $SNYK_TOKEN'
-                    sh 'snyk test --all-projects'
+                    sh 'npx snyk auth $SNYK_TOKEN'
+                    sh 'npx snyk test --all-projects'
+
                 }
             }
         }
