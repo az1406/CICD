@@ -45,21 +45,31 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                    sshagent(['ec2-ssh-key']) {
-                        sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
-                            docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
-                            docker network create secret-notes-jenkins-network || true
-                            docker rm -f jenkins-secret-notes-frontend || true
-                            docker pull $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-frontend
-                            docker run -d --name jenkins-secret-notes-frontend --network secret-notes-jenkins-network -e NODE_ENV=production -p 8081:80 $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-frontend
-                        "
-                        '''
-                    }
-                }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+            sshagent(['ec2-ssh-key']) {
+                sh '''
+                # Copy nginx.conf to EC2 instance
+                scp -o StrictHostKeyChecking=no frontend/nginx.conf ubuntu@18.204.164.224:/tmp/nginx.conf
+
+                # SSH into EC2 and deploy container
+                ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
+                    docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
+                    docker network create secret-notes-jenkins-network || true
+                    docker rm -f jenkins-secret-notes-frontend || true
+                    docker pull $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-frontend
+                    docker run -d --name jenkins-secret-notes-frontend \\
+                        --network secret-notes-jenkins-network \\
+                        -e NODE_ENV=production \\
+                        -p 8081:80 \\
+                        -v /tmp/nginx.conf:/etc/nginx/conf.d/default.conf \\
+                        $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-frontend
+                "
+                '''
             }
         }
+    }
+}
+
     }
 }
