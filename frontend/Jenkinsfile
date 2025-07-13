@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        SONARQUBE_TOKEN = credentials('sonarqube-token')
+        SNYK_TOKEN = credentials('snyk-token')
+        EC2_SSH_KEY = credentials('ec2-ssh-key')
+    }
+
+    stages {
+        stage('Linting') {
+            steps {
+                sh 'npm install'
+                sh 'npm install -g snyk'
+                sh 'snyk auth $SNYK_TOKEN'
+                sh 'snyk test --all-projects'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'docker build -t ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-frontend:jenkins .'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'deploy/production'
+            }
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-frontend:jenkins'
+
+                sshagent(['ec2-ssh-key']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
+                        docker network create secret-notes-jenkins-network || true
+                        docker rm -f secret-notes-frontend-jenkins || true
+                        docker pull ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-frontend:jenkins
+                        docker run -d --name secret-notes-frontend-jenkins --network secret-notes-jenkins-network -e NODE_ENV=production -p 8081:80 ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-frontend:jenkins
+                    "
+                    '''
+                }
+            }
+        }
+
+        stage('E2E Tests') {
+            when {
+                branch 'deploy/production'
+            }
+            steps {
+                sh 'npm install'
+                sh 'npx playwright install --with-deps'
+                sh 'docker run --rm -v "$PWD/__tests__/k6:/app" grafana/k6:1.1.0 run --env BASE_URL=http://18.204.164.224:8081 /app/smoke-test.js'
+                script {
+                    env.E2E_BASE_URL = 'http://18.204.164.224:8081'
+                }
+                sh 'npx playwright test __tests__/e2e'
+            }
+        }
+    }
+}

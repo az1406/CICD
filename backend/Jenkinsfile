@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        SONARQUBE_TOKEN = credentials('sonarqube-token')
+        SNYK_TOKEN = credentials('snyk-token')
+        EC2_SSH_KEY = credentials('ec2-ssh-key')
+    }
+
+    stages {
+        stage('Linting') {
+            steps {
+                sh 'npm install'
+                sh 'npm install -g snyk'
+                sh 'snyk auth $SNYK_TOKEN'
+                sh 'snyk test --all-projects'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'npm test -- --watchAll=false'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'docker build -t ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins .'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'deploy/production'
+            }
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins'
+
+                sshagent(['ec2-ssh-key']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
+                        docker network create secret-notes-jenkins-network || true
+                        docker rm -f secret-notes-backend-jenkins || true
+                        docker pull ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins
+                        docker run -d --name secret-notes-backend-jenkins --network secret-notes-jenkins-network -e NODE_ENV=production -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes?sslmode=require -p 3001:3000 ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins
+                    "
+                    '''
+                }
+            }
+        }
+    }
+}
