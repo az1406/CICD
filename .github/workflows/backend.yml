@@ -162,14 +162,14 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cat <<EOT | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
+            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
             server {
                 listen 3001;
                 server_name _;
                 location / {
                     proxy_pass http://localhost:3100;
-                    proxy_set_header Host \$host;
-                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
                 }
             }
             EOT
@@ -189,14 +189,14 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cat <<EOT | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
+            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
             server {
                 listen 3001;
                 server_name _;
                 location / {
                     proxy_pass http://localhost:3000;
-                    proxy_set_header Host \$host;
-                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
                 }
             }
             EOT

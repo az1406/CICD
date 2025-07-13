@@ -259,7 +259,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cat <<EOT | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
+            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
             server {
                 listen 80;
                 server_name _;
