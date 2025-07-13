@@ -153,8 +153,14 @@ export default {
 
     async fetchNotes() {
       try {
-        const response = await fetch('/api/notes');
-        const data = await response.json();  // <-- Error happens here
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        let url = '/api/notes';
+        if (userId) {
+          url += `?user_id=${userId}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
         if (response.ok) {
           this.notes = data.notes.map(note => ({
             ...note,

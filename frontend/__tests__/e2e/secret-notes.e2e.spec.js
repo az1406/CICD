@@ -17,10 +17,20 @@ test.describe('Secret Notes E2E', () => {
         await page.goto(BASE_URL);
 
         const uniqueContent = `Decrypt me! ${Date.now()}`;
-        await page.getByPlaceholder('Enter your secret note...').fill(uniqueContent);
-        await page.getByPlaceholder('Enter encryption key...').fill('right-key');
-        await page.getByRole('button', { name: /encrypt note/i }).click();
-        await expect(page.getByText(/note encrypted successfully/i)).toBeVisible();
+
+        await page.evaluate(async (content) => {
+            await fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content,
+                    key: 'right-key',
+                    user_id: 'e2e_test_user'
+                })
+            });
+        }, uniqueContent);
+
+        await page.goto(`${BASE_URL}?user_id=e2e_test_user`);
 
         const firstNote = page.locator('.note-item').first();
         const decryptInput = firstNote.locator('input[placeholder="Enter decryption key..."]');

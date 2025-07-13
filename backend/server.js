@@ -45,7 +45,6 @@ function decrypt(encryptedText, key) {
 // Initialize database with better error handling
 async function initDatabase() {
   try {
-    // Test connection
     const client = await pool.connect();
     fastify.log.info('Database connection successful');
 
@@ -188,9 +187,18 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
 // List all notes
 fastify.get('/api/notes', async (request, reply) => {
   try {
-    const result = await pool.query(
-      'SELECT id, created_at FROM secret_notes ORDER BY created_at DESC'
-    );
+    const userId = request.query.user_id;
+    let result;
+    if (userId) {
+      result = await pool.query(
+        'SELECT id, created_at FROM secret_notes WHERE user_id = $1 ORDER BY created_at DESC',
+        [userId]
+      );
+    } else {
+      result = await pool.query(
+        'SELECT id, created_at FROM secret_notes ORDER BY created_at DESC'
+      );
+    }
 
     return {
       notes: result.rows
@@ -207,9 +215,8 @@ fastify.get('/api/notes', async (request, reply) => {
 fastify.delete('/api/test-data', async (request, reply) => {
   try {
     const result = await pool.query(
-      `DELETE FROM secret_notes WHERE user_id = 'k6_test_user'`
+      `DELETE FROM secret_notes WHERE user_id = 'k6_test_user' OR user_id = 'e2e_test_user'`
     );
-
     fastify.log.info(`Cleaned up ${result.rowCount} test notes`);
     return { message: 'Test data cleaned up successfully', deletedCount: result.rowCount };
   } catch (err) {
