@@ -137,7 +137,7 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
     }
 
     const result = await pool.query(
-      'SELECT encrypted_content, key_hash FROM notes WHERE id = $1',
+      'SELECT encrypted_content, key_hash FROM secret_notes WHERE id = $1',
       [id]
     );
 
@@ -187,7 +187,7 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
 fastify.get('/api/notes', async (request, reply) => {
   try {
     const result = await pool.query(
-      'SELECT id, created_at FROM notes ORDER BY created_at DESC'
+      'SELECT id, created_at FROM secret_notes ORDER BY created_at DESC'
     );
 
     return {
