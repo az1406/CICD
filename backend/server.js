@@ -202,6 +202,29 @@ fastify.get('/api/notes', async (request, reply) => {
   }
 });
 
+fastify.delete('/api/test-data', async (request, reply) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return reply.status(403).send({ error: 'Cleanup not allowed in production' });
+    }
+
+    const result = await pool.query(`
+      DELETE FROM notes WHERE 
+        encrypted_content LIKE '%test%' OR 
+        encrypted_content LIKE '%smoke%' OR 
+        encrypted_content LIKE '%load%' OR
+        encrypted_content LIKE '%CI test%' OR
+        encrypted_content LIKE '%Load test%'
+    `);
+
+    fastify.log.info(`Cleaned up ${result.rowCount} test notes`);
+    return { message: 'Test data cleaned up successfully', deletedCount: result.rowCount };
+  } catch (err) {
+    fastify.log.error('Error cleaning test data:', err.message);
+    return reply.status(500).send({ error: 'Failed to clean test data: ' + err.message });
+  }
+});
+
 const start = async () => {
   try {
     await initDatabase();

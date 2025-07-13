@@ -161,8 +161,11 @@ jobs:
           docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:latest \
             run --env BASE_URL=http://18.204.164.224:8080 /app/performance-tests.js
 
-      - name: Run k6 Light Load Tests (1m)
+      - name: Run k6 Load Tests (1m)
         run: |
           docker run --rm -v "$PWD/frontend/src/k6:/app" grafana/k6:latest \
             run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
-        continue-on-error: true
+
+      - name: Cleanup test data
+        run: |
+          curl -X DELETE http://18.204.164.224:8080/api/test-data || echo "Cleanup failed or not available"
