@@ -8,13 +8,24 @@ app.vue:
       <h2>Encrypt Note</h2>
       <form @submit.prevent="createNote">
         <div>
-          <label>Note Content:</label>
-          <textarea v-model="newNote.content" placeholder="Enter your secret note..." required></textarea>
+          <label for="note-content">Note Content:</label>
+          <textarea
+            id="note-content"
+            v-model="newNote.content"
+            placeholder="Enter your secret note..."
+            required
+          ></textarea>
         </div>
 
         <div>
-          <label>Encryption Key:</label>
-          <input type="password" v-model="newNote.key" placeholder="Enter encryption key..." required />
+          <label for="encryption-key">Encryption Key:</label>
+          <input
+            id="encryption-key"
+            type="password"
+            v-model="newNote.key"
+            placeholder="Enter encryption key..."
+            required
+          />
         </div>
 
         <button type="submit" :disabled="loading">

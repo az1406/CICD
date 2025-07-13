@@ -136,8 +136,9 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
       });
     }
 
+    // FIX: Select id as well
     const result = await pool.query(
-      'SELECT encrypted_content, key_hash FROM secret_notes WHERE id = $1',
+      'SELECT id, encrypted_content, key_hash FROM secret_notes WHERE id = $1',
       [id]
     );
 

@@ -1,4 +1,4 @@
-FROM grafana/k6:latest
+FROM grafana/k6:1.1.0
 
 WORKDIR /app
 
