@@ -115,9 +115,6 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
-    strategy:
-      matrix:
-        ENVIRONMENT: [blue, green]
     steps:
       - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
@@ -151,9 +148,6 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
-    strategy:
-      matrix:
-        ENVIRONMENT: [green]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -216,9 +210,6 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: always()
-    strategy:
-      matrix:
-        ENVIRONMENT: [green]
     steps:
       - name: Switch traffic to Green (overwrite NGINX config)
         uses: appleboy/ssh-action@v0.1.7
