@@ -116,26 +116,52 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
+    strategy:
+      matrix:
+        ENVIRONMENT: [blue, green]
     steps:
-      - name: Deploy to EC2 via SSH
+      - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
+              PORT=3000
+              NAME=secret-notes-backend-blue
+            else
+              PORT=3100
+              NAME=secret-notes-backend-green
+            fi
             docker network create secret-notes-network || true
-            docker rm -f secret-notes-backend || true
+            docker rm -f $NAME || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
             docker run -d \
-              --name secret-notes-backend \
+              --name $NAME \
               --network secret-notes-network \
-              --network-alias backend \
+              --network-alias backend-${{ matrix.ENVIRONMENT }} \
               -e NODE_ENV=production \
               -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
               -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:${{ env.DATABASE_PORT }}/secret_notes?sslmode=require \
-              -p ${{ env.BACKEND_PORT }}:3000 \
+              -p $PORT:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+
+  switch-traffic:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Switch traffic to Green (update NGINX or Load Balancer)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Example: update NGINX config to point to port 3100 (green)
+            sudo sed -i 's/3000/3100/g' /etc/nginx/conf.d/secret-notes-backend.conf
+            sudo systemctl reload nginx
 
   notify-on-failure:
     needs: [ linting, test, build, deliver, deploy]
