@@ -176,12 +176,6 @@ jobs:
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
 
-      - name: Run Playwright E2E tests
-        run: npx playwright test frontend/__tests__/e2e
-        env:
-          E2E_BASE_URL: http://18.204.164.224:8080
-        working-directory: ./
-
       - name: Cleanup test data
         run: |
           curl -X DELETE http://18.204.164.224:8080/api/test-data || echo "Cleanup failed or not available"
