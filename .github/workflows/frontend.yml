@@ -17,7 +17,7 @@ env:
 jobs:
   linting:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == env.GITHUB_REF_MAIN || github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+    if: ${{ github.ref == 'env.GITHUB_REF_MAIN' || github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
