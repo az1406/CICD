@@ -27,7 +27,7 @@ pipeline {
         stage('Test') {
             steps {
                 dir('frontend') {
-                    sh 'npm test -- --watchAll=false'
+                    sh 'npx vitest --run'
                 }
             }
         }
