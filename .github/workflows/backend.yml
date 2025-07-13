@@ -18,7 +18,7 @@ env:
 jobs:
   linting:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    if: github.ref == '${{ env.GITHUB_REF_MAIN }}' || github.ref == '${{ env.GITHUB_REF_DEPLOY_PRODUCTION }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
   test:
     needs: linting
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    if: github.ref == '${{ env.GITHUB_REF_MAIN }}' || github.ref == '${{ env.GITHUB_REF_DEPLOY_PRODUCTION }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -76,7 +76,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    if: github.ref == '${{ env.GITHUB_REF_MAIN }}' || github.ref == '${{ env.GITHUB_REF_DEPLOY_PRODUCTION }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -94,7 +94,7 @@ jobs:
   deliver:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: github.ref == '${{ env.GITHUB_REF_DEPLOY_PRODUCTION }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -115,7 +115,7 @@ jobs:
   deploy:
     needs: deliver
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: github.ref == '${{ env.GITHUB_REF_DEPLOY_PRODUCTION }}'
     steps:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
