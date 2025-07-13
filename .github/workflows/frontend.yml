@@ -129,9 +129,11 @@ jobs:
             if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
               PORT=8080
               NAME=secret-notes-frontend-blue
+              BACKEND_PORT=3000
             else
               PORT=8180
               NAME=secret-notes-frontend-green
+              BACKEND_PORT=3100
             fi
             docker network create secret-notes-network || true
             docker rm -f $NAME || true
@@ -141,6 +143,7 @@ jobs:
               --network secret-notes-network \
               --network-alias frontend-${{ matrix.ENVIRONMENT }} \
               -e NODE_ENV=production \
+              -e BACKEND_PORT=$BACKEND_PORT \
               -p $PORT:80 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
