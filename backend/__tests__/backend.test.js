@@ -4,7 +4,7 @@ jest.mock('pg', () => {
     connect: jest.fn(),
     query: jest.fn().mockResolvedValue({ 
       rows: [
-        { id: 1, encrypted_content: 'Test note content', key_hash: 'correctKey123', created_at: '2024-01-01T12:00:00Z' },
+        { id: 1, encrypted_content: '177d66f5c72de640afb844c172228ecb:a897f78810a6bca20990863f9aa34ac95f7d7077672f55b610add17eb35b2fd8', key_hash: '0a2f59d5afb5d5aa0d6d20fefd3372c29e830681d9605b1f3d3c41abdeebd71c', created_at: '2024-01-01T12:00:00Z' }, // Test note content, correctKey123
         { id: 2, encrypted_content: 'encrypted_content', key_hash:'key_hash2', created_at: '2024-01-01T14:00:00Z' }
       ] 
     }),
@@ -101,23 +101,23 @@ describe('Secret Notes API', () => {
     expect(JSON.parse(response.body).error).toBe('Content and key are required');
   });
 
-  // TODO: Test 6: Decrypt note with valid key
-  // test('POST /api/notes/:id/decrypt should decrypt note with correct key', async () => {
-  //   const decryptData = {
-  //     key: 'correctKey123'
-  //   };
+  // Test 6: Decrypt note with valid key
+  test('POST /api/notes/:id/decrypt should decrypt note with correct key', async () => {
+    const decryptData = {
+      key: 'correctKey123'
+    };
 
-  //   const response = await app.inject({
-  //     method: 'POST',
-  //     url: '/api/notes/1/decrypt',
-  //     payload: decryptData
-  //   });
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/notes/1/decrypt',
+      payload: decryptData
+    });
 
-  //   expect(response.statusCode).toBe(200);
-  //   const body = JSON.parse(response.body);
-  //   expect(body.content).toBe('Test note content');
-  //   expect(body.message).toBe('Note decrypted successfully');
-  // });
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(body.content).toBe('Test note content');
+    expect(body.message).toBe('Note decrypted successfully');
+  });
 
   // Test 7: Decrypt note with wrong key
   test('POST /api/notes/:id/decrypt should return 401 with wrong key', async () => {
@@ -135,21 +135,21 @@ describe('Secret Notes API', () => {
     expect(JSON.parse(response.body).error).toBe('Invalid decryption key');
   });
 
-  // TODO: Test 8: Decrypt non-existent note
-  // test('POST /api/notes/:id/decrypt should return 404 for non-existent note', async () => {
-  //   const decryptData = {
-  //     key: 'anyKey123'
-  //   };
+  // Test 8: Decrypt non-existent note
+  test('POST /api/notes/:id/decrypt should return 404 for non-existent note', async () => {
+    const decryptData = {
+      key: 'anyKey123'
+    };
 
-  //   const response = await app.inject({
-  //     method: 'POST',
-  //     url: '/api/notes/999/decrypt',
-  //     payload: decryptData
-  //   });
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/notes/999/decrypt',
+      payload: decryptData
+    });
 
-  //   expect(response.statusCode).toBe(404);
-  //   expect(JSON.parse(response.body).error).toBe('Note not found');
-  // });
+    expect(response.statusCode).toBe(404);
+    expect(JSON.parse(response.body).error).toBe('Note not found');
+  });
 
   // Test 9: Decrypt without key
   test('POST /api/notes/:id/decrypt should return 400 when key is missing', async () => {

@@ -143,7 +143,7 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
 
     fastify.log.info(`Database query result: ${result.rows.length} rows`);
 
-    if (result.rows.length === 0) {
+    if (result.rows.length === 0 || result.rows[0].id.toString() !== id) {
       return reply.status(404).send({
         error: 'Note not found'
       });
@@ -170,7 +170,7 @@ fastify.post('/api/notes/:id/decrypt', async (request, reply) => {
       };
     } catch (decryptError) {
       fastify.log.error('Decryption error:', decryptError.message);
-      return reply.status(500).send({
+      return reply.status(501).send({
         error: 'Decryption failed: ' + decryptError.message
       });
     }
