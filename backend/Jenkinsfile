@@ -17,22 +17,28 @@ pipeline {
 
         stage('Linting') {
             steps {
-                sh 'npm install'
-                sh 'npm install -g snyk'
-                sh 'snyk auth $SNYK_TOKEN'
-                sh 'snyk test --all-projects'
+                dir('backend') {
+                    sh 'npm install'
+                    sh 'npm install -g snyk'
+                    sh 'snyk auth $SNYK_TOKEN'
+                    sh 'snyk test --all-projects'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh 'npm test -- --watchAll=false'
+                dir('backend') {
+                    sh 'npm test -- --watchAll=false'
+                }
             }
         }
 
         stage('Build') {
             steps {
-                sh 'docker build -t ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins .'
+                dir('backend') {
+                    sh 'docker build -t ${DOCKERHUB_CREDENTIALS_USR}/secret-notes-backend:jenkins .'
+                }
             }
         }
 
