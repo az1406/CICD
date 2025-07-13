@@ -144,31 +144,6 @@ jobs:
               -p $PORT:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
-  switch-traffic:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Switch traffic to Green (overwrite NGINX config)
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
-            server {
-                listen 3100;
-                server_name _;
-                location / {
-                    proxy_pass http://localhost:3100;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-            }
-            EOT
-            sudo systemctl reload nginx
-
   notify-on-failure:
     needs: [ linting, test, build, deliver, deploy]
     if: failure()

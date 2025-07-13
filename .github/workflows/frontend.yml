@@ -206,36 +206,6 @@ jobs:
         run: |
           curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
-  switch-traffic:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Switch traffic to Green (overwrite NGINX config)
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
-            server {
-                listen 80;
-                server_name _;
-                location / {
-                    proxy_pass http://localhost:8180;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-                location /api/ {
-                    proxy_pass http://localhost:8180;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-            }
-            EOT
-            sudo systemctl reload nginx
-
   notify-on-failure:
     needs: [linting, test, build, deliver, deploy, e2e-performance-test]
     if: failure()
