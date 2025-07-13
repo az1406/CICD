@@ -47,11 +47,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-          expression { env.BRANCH_NAME == 'origin/deploy/production' || env.BRANCH_NAME == 'deploy/production' }
-                }
-
-            steps {
+                steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
                     sshagent(['ec2-ssh-key']) {
                         sh '''
