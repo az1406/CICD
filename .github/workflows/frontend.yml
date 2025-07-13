@@ -181,7 +181,7 @@ jobs:
           curl -X DELETE http://18.204.164.224:8080/api/test-data || echo "Cleanup failed or not available"
 
   notify-on-failure:
-    needs: [linting, test, build, deliver, deploy, performance-test]
+    needs: [linting, test, build, deliver, deploy, e2e-performance-test]
     if: failure()
     runs-on: ubuntu-latest
     steps:
