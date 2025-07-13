@@ -44,7 +44,7 @@ test.describe('Secret Notes E2E', () => {
     });
 
     test('User sees error with wrong decryption key', async ({ page }) => {
-        await page.goto(BASE_URL);
+        await page.goto(`${BASE_URL}?user_id=e2e_test_user`);
 
         await page.getByPlaceholder('Enter your secret note...').fill('Wrong key test');
         await page.getByPlaceholder('Enter encryption key...').fill('correct-key');

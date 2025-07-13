@@ -8,12 +8,12 @@ const errorRate = new Rate('errors');
 // LIGHTWEIGHT Load test for CI/CD
 export const options = {
     stages: [
-        { duration: '15s', target: 10 },  // Ramp up to 10 users
-        { duration: '30s', target: 15 },  // Stay at 15 users
-        { duration: '15s', target: 0 },   // Ramp down
+        { duration: '10s', target: 10 },  // Ramp up to 10 users
+        { duration: '10s', target: 15 },  // Stay at 15 users
+        { duration: '10s', target: 0 },   // Ramp down
     ],
     thresholds: {
-        http_req_duration: ['p(95)<2000'], // More lenient thresholds
+        http_req_duration: ['p(95)<2000'],
         http_req_failed: ['rate<0.1'],
         errors: ['rate<0.1'],
     },

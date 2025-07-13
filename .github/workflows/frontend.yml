@@ -145,6 +145,14 @@ jobs:
         run: npm install
         working-directory: ./frontend
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            playwright-browsers-${{ runner.os }}-
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         working-directory: ./frontend
@@ -161,17 +169,17 @@ jobs:
             sleep 5
           done
 
-      - name: Run k6 Smoke Tests (30s)
+      - name: Run k6 Smoke Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/smoke-test.js
 
-      - name: Run k6 Performance Tests (30s)
+      - name: Run k6 Performance Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/performance-tests.js
 
-      - name: Run k6 Load Tests (1m)
+      - name: Run k6 Load Tests
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
             run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
