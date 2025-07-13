@@ -166,7 +166,6 @@ jobs:
               ACTIVE=blue
             fi
             if [ "$ACTIVE" = "blue" ]; then
-              # Switch to green
               cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
               server {
                   listen 3001;
@@ -178,9 +177,8 @@ jobs:
                   }
               }
               EOT
-              echo green | sudo tee $FLAG_FILE
-            else
-              # Switch to blue
+                            echo green | sudo tee $FLAG_FILE
+                          else
               cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
               server {
                   listen 3001;
