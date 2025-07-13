@@ -177,8 +177,10 @@ jobs:
             run --env BASE_URL=http://18.204.164.224:8080 /app/load-test.js
 
       - name: Run Playwright E2E tests
-        run: npx playwright test frontend/__tests__/e2e
+        run: npx playwright test __tests__/e2e
         working-directory: ./frontend
+        env:
+          E2E_BASE_URL: http://18.204.164.224:8080
         
       - name: Cleanup test data
         run: |
