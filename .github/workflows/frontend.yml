@@ -35,7 +35,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ http://env.HOST:env.SONARQUBE_PORT }}
+          SONAR_HOST_URL: http://${{ env.HOST }}:${{ env.SONARQUBE_PORT }}
         with:
           projectBaseDir: ./frontend
           args: >
@@ -54,7 +54,7 @@ jobs:
   test:
         needs: linting
         runs-on: ubuntu-latest
-        if: ${{ github.ref == env.GITHUB_REF_MAIN || github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+        if: ${{ github.ref == 'env.GITHUB_REF_MAIN' || github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
         steps:
           - name: Checkout code
             uses: actions/checkout@v3
@@ -75,7 +75,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ github.ref == env.GITHUB_REF_MAIN || github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+    if: ${{ github.ref == 'env.GITHUB_REF_MAIN' || github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -93,7 +93,7 @@ jobs:
   deliver:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+    if: ${{ github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -114,7 +114,7 @@ jobs:
   deploy:
     needs: deliver
     runs-on: ubuntu-latest
-    if: ${{ github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+    if: ${{ github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
     steps:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
@@ -136,7 +136,7 @@ jobs:
   e2e-performance-test:
     needs: deploy
     runs-on: ubuntu-latest
-    if: ${{ github.ref == env.GITHUB_REF_DEPLOY_PRODUCTION }}
+    if: ${{ github.ref == 'env.GITHUB_REF_DEPLOY_PRODUCTION' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -161,7 +161,7 @@ jobs:
         run: |
           echo "Waiting for application to be ready..."
           for i in {1..15}; do
-            if curl -f ${{ http://env.HOST:env.FRONTEND_PORT/api/health }}; then
+            if curl -f http://${{ env.HOST }}:${{ env.FRONTEND_PORT }}/api/health; then
               echo "Application is ready!"
               break
             fi
