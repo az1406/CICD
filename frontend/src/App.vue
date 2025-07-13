@@ -82,30 +82,40 @@ import posthog from './posthog';
 export default {
   name: 'SecretNotesApp',
   data() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return {
-    loading: false,
-    newNote: {
-      content: '',
-      key: '',
-      user_id: urlParams.get('user_id') || ''
-    },
-    notes: [],
-    createMessage: null,
-    isGreenTheme: false,
-  };
-}, 
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      loading: false,
+      newNote: {
+        content: '',
+        key: '',
+        user_id: urlParams.get('user_id') || ''
+      },
+      notes: [],
+      createMessage: null,
+      themeVariant: 'control', // default to control
+    };
+  },
 
   mounted() {
-    // Set initial state
-    this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
+    // Get the experiment variant for the user
+    this.themeVariant = posthog.getFeatureFlagVariant
+      ? posthog.getFeatureFlagVariant('green_theme_experiment') || 'control'
+      : (posthog.isFeatureEnabled('green_theme_experiment') ? 'green_theme' : 'control');
 
-    // Listen for feature flag updates 
+    // Listen for feature flag/experiment updates
     posthog.onFeatureFlags(() => {
-      this.isGreenTheme = posthog.isFeatureEnabled('green_theme');
+      this.themeVariant = posthog.getFeatureFlagVariant
+        ? posthog.getFeatureFlagVariant('green_theme_experiment') || 'control'
+        : (posthog.isFeatureEnabled('green_theme_experiment') ? 'green_theme' : 'control');
     });
 
     this.fetchNotes();
+  },
+
+  computed: {
+    isGreenTheme() {
+      return this.themeVariant === 'green_theme';
+    }
   },
 
   methods: {
