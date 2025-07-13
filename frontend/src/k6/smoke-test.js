@@ -32,6 +32,7 @@ export default function () {
     const createPayload = JSON.stringify({
         content: 'Smoke test note',
         key: 'smoketestkey',
+        user_id: 'k6_test_user'
     });
 
     const params = {

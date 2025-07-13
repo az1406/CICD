@@ -92,7 +92,7 @@ fastify.get('/api/health', async () => {
 // Create encrypted note
 fastify.post('/api/notes', async (request, reply) => {
   try {
-    const { content, key } = request.body;
+    const { content, key, user_id } = request.body;
 
     if (!content || !key) {
       return reply.status(400).send({
@@ -104,8 +104,8 @@ fastify.post('/api/notes', async (request, reply) => {
     const keyHash = crypto.createHash('sha256').update(key).digest('hex');
 
     const result = await pool.query(
-      'INSERT INTO secret_notes (encrypted_content, key_hash) VALUES ($1, $2) RETURNING id, created_at',
-      [encryptedContent, keyHash]
+      'INSERT INTO secret_notes (encrypted_content, key_hash, user_id) VALUES ($1, $2, $3) RETURNING id, created_at',
+      [encryptedContent, keyHash, user_id || null]
     );
 
     return {
@@ -205,14 +205,9 @@ fastify.get('/api/notes', async (request, reply) => {
 
 fastify.delete('/api/test-data', async (request, reply) => {
   try {
-    const result = await pool.query(`
-      DELETE FROM secret_notes WHERE 
-        encrypted_content LIKE '%test%' OR 
-        encrypted_content LIKE '%smoke%' OR 
-        encrypted_content LIKE '%load%' OR
-        encrypted_content LIKE '%CI test%' OR
-        encrypted_content LIKE '%Load test%'
-    `);
+    const result = await pool.query(
+      `DELETE FROM secret_notes WHERE user_id = 'k6_test_user'`
+    );
 
     fastify.log.info(`Cleaned up ${result.rowCount} test notes`);
     return { message: 'Test data cleaned up successfully', deletedCount: result.rowCount };

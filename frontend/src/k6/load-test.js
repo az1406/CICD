@@ -40,6 +40,7 @@ function quickCreateAndDecrypt() {
     const payload = JSON.stringify({
         content: `Load test ${uniqueId}`,
         key: `key${uniqueId}`,
+        user_id: 'k6_test_user'
     });
 
     const params = {

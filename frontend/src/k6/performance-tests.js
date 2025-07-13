@@ -64,6 +64,7 @@ function testCreateAndDecryptNote() {
     const createPayload = JSON.stringify({
         content: `CI test note ${__VU}-${__ITER}`,
         key: `testkey${__VU}${__ITER}`,
+        user_id: 'k6_test_user'
     });
 
     const params = {
