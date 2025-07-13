@@ -50,7 +50,7 @@ async function initDatabase() {
     fastify.log.info('Database connection successful');
 
     await client.query(`
-      CREATE TABLE IF NOT EXISTS notes (
+      CREATE TABLE IF NOT EXISTS secret_notes (
         id SERIAL PRIMARY KEY,
         encrypted_content TEXT NOT NULL,
         key_hash VARCHAR(64) NOT NULL,
@@ -205,7 +205,7 @@ fastify.get('/api/notes', async (request, reply) => {
 fastify.delete('/api/test-data', async (request, reply) => {
   try {
     const result = await pool.query(`
-      DELETE FROM notes WHERE 
+      DELETE FROM secret_notes WHERE 
         encrypted_content LIKE '%test%' OR 
         encrypted_content LIKE '%smoke%' OR 
         encrypted_content LIKE '%load%' OR
