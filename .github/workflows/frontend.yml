@@ -27,7 +27,7 @@ jobs:
         working-directory: ./frontend
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: http://18.204.164.224:9000
