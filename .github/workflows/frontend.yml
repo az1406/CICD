@@ -193,7 +193,7 @@ jobs:
       - name: Cleanup test data
         if: always()
         run: |
-          curl -X DELETE http://${{ env.HOST }}:${{ env.FRONTEND_PORT/api/test-data }} || echo "Cleanup failed or not available"
+          curl -X DELETE http://${{ env.HOST }}:${{ env.FRONTEND_PORT }}/api/test-data || echo "Cleanup failed or not available"
 
   notify-on-failure:
     needs: [linting, test, build, deliver, deploy, e2e-performance-test]
