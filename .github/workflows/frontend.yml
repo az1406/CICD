@@ -183,6 +183,7 @@ jobs:
           E2E_BASE_URL: http://18.204.164.224:8080
         
       - name: Cleanup test data
+        if: always()
         run: |
           curl -X DELETE http://18.204.164.224:8080/api/test-data || echo "Cleanup failed or not available"
 
