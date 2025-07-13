@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - deploy/production
+      - deploy/production 
 
 jobs:
   linting:
