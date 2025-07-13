@@ -2,10 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         SONARQUBE_TOKEN = credentials('sonarqube-token')
         SNYK_TOKEN = credentials('snyk-token')
-        EC2_SSH_KEY = credentials('ec2-ssh-key')
     }
 
     stages {
@@ -22,7 +20,6 @@ pipeline {
                     sh 'npm install snyk'
                     sh 'npx snyk auth $SNYK_TOKEN'
                     sh 'npx snyk test --all-projects'
-
                 }
             }
         }
@@ -32,40 +29,40 @@ pipeline {
                 dir('backend') {
                     withEnv(['PORT=4000']) {
                         sh 'npm test -- --watchAll=false'
-                  }
+                    }
                 }
             }
         }
 
         stage('Build') {
-    steps {
-        dir('backend') {
-            withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                sh 'docker build -t $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend .'
-                sh 'docker push $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend'
+            steps {
+                dir('backend') {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                        sh 'docker build -t $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend .'
+                        sh 'docker push $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend'
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Deploy') {
             when {
                 branch 'deploy/production'
             }
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/jenkins-secret-notes-backend'
-
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
-                        docker network create secret-notes-jenkins-network || true
-                        docker rm -f jenkins-secret-notes-backend || true
-                        docker pull ${DOCKERHUB_CREDENTIALS_USR}/jenkins-secret-notes-backend
-                        docker run -d --name jenkins-secret-notes-backend --network secret-notes-jenkins-network -e NODE_ENV=production -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes?sslmode=require -p 3001:3000 ${DOCKERHUB_CREDENTIALS_USR}/jenkins-secret-notes-backend
-                    "
-                    '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                    sshagent(['ec2-ssh-key']) {
+                        sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@18.204.164.224 "
+                            docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
+                            docker network create secret-notes-jenkins-network || true
+                            docker rm -f jenkins-secret-notes-backend || true
+                            docker pull $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend
+                            docker run -d --name jenkins-secret-notes-backend --network secret-notes-jenkins-network -e NODE_ENV=production -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:5432/secret_notes?sslmode=require -p 3001:3000 $DOCKERHUB_CREDENTIALS_USR/jenkins-secret-notes-backend
+                        "
+                        '''
+                    }
                 }
             }
         }
