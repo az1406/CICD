@@ -204,10 +204,6 @@ fastify.get('/api/notes', async (request, reply) => {
 
 fastify.delete('/api/test-data', async (request, reply) => {
   try {
-    if (process.env.NODE_ENV === 'production') {
-      return reply.status(403).send({ error: 'Cleanup not allowed in production' });
-    }
-
     const result = await pool.query(`
       DELETE FROM notes WHERE 
         encrypted_content LIKE '%test%' OR 
