@@ -4,7 +4,7 @@ const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:8080';
 
 test.describe('Secret Notes E2E', () => {
     test('User can create a secret note and see confirmation', async ({ page }) => {
-        await page.goto(BASE_URL);
+        await page.goto(`${BASE_URL}?user_id=e2e_test_user`);
 
         await page.getByPlaceholder('Enter your secret note...').fill('Playwright secret note');
         await page.getByPlaceholder('Enter encryption key...').fill('pw-key-123');

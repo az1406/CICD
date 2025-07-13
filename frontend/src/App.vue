@@ -82,14 +82,19 @@ import posthog from './posthog';
 export default {
   name: 'SecretNotesApp',
   data() {
-    return {
-      loading: false,
-      newNote: { content: '', key: '' },
-      notes: [],
-      createMessage: null,
-      isGreenTheme: false,
-    };
-  },
+  const urlParams = new URLSearchParams(window.location.search);
+  return {
+    loading: false,
+    newNote: {
+      content: '',
+      key: '',
+      user_id: urlParams.get('user_id') || ''
+    },
+    notes: [],
+    createMessage: null,
+    isGreenTheme: false,
+  };
+},
 
   mounted() {
     // Set initial state
@@ -116,13 +121,19 @@ export default {
       try {
         const noteContentLength = this.newNote.content.length; // save before clearing
 
+        // Only include user_id if present
+        const body = {
+          content: this.newNote.content,
+          key: this.newNote.key
+        };
+        if (this.newNote.user_id) {
+          body.user_id = this.newNote.user_id;
+        }
+
         const response = await fetch('/api/notes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: this.newNote.content,
-            key: this.newNote.key
-          })
+          body: JSON.stringify(body)
         });
 
         const data = await response.json();
@@ -132,7 +143,7 @@ export default {
           this.newNote.content = '';
           this.newNote.key = '';
 
-          posthog.capture('note_encrypted', {
+          this.$posthog.capture('note_encrypted', {
             length: noteContentLength
           });
 
@@ -146,9 +157,6 @@ export default {
       } finally {
         this.loading = false;
       }
-      
-
-      this.loading = false;
     },
 
     async fetchNotes() {
