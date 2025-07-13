@@ -104,7 +104,7 @@ fastify.post('/api/notes', async (request, reply) => {
     const keyHash = crypto.createHash('sha256').update(key).digest('hex');
 
     const result = await pool.query(
-      'INSERT INTO notes (encrypted_content, key_hash) VALUES ($1, $2) RETURNING id, created_at',
+      'INSERT INTO secret_notes (encrypted_content, key_hash) VALUES ($1, $2) RETURNING id, created_at',
       [encryptedContent, keyHash]
     );
 
