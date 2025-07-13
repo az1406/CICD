@@ -224,7 +224,8 @@ export default {
             note_id: note.id
           });
         } else {
-          note.error = data.error || 'Failed to decrypt note';
+          // Always set the error message from backend, fallback if missing
+          note.error = data && data.error ? data.error : 'Failed to decrypt note';
         }
       } catch (error) {
         console.error('Failed to decrypt note:', error);

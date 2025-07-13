@@ -213,9 +213,9 @@ jobs:
           curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
   switch-traffic-green:
-    needs: e2e-performance-test
+    needs: deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: always()
     strategy:
       matrix:
         ENVIRONMENT: [green]
@@ -238,38 +238,6 @@ jobs:
                 }
                 location /api/ {
                     proxy_pass http://localhost:8180;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-            }
-            EOT
-            sudo systemctl reload nginx
-  switch-traffic-blue:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        ENVIRONMENT: [blue]
-    steps:
-      - name: Switch traffic to Blue (overwrite NGINX config)
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-frontend.conf
-            server {
-                listen 80;
-                server_name _;
-                location / {
-                    proxy_pass http://localhost:8080;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-                location /api/ {
-                    proxy_pass http://localhost:8080;
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
                 }

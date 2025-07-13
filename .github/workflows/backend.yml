@@ -150,7 +150,7 @@ jobs:
   switch-traffic-green:
     needs: deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
+    if: always()
     strategy:
       matrix:
         ENVIRONMENT: [green]
@@ -168,33 +168,6 @@ jobs:
                 server_name _;
                 location / {
                     proxy_pass http://localhost:3100;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                }
-            }
-            EOT
-            sudo systemctl reload nginx
-  switch-traffic-blue:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        ENVIRONMENT: [blue]
-    steps:
-      - name: Switch traffic to Blue (overwrite NGINX config)
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cat <<'EOT' | sudo tee /etc/nginx/conf.d/secret-notes-backend.conf
-            server {
-                listen 3101;
-                server_name _;
-                location / {
-                    proxy_pass http://localhost:3000;
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
                 }
