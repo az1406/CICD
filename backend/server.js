@@ -225,9 +225,6 @@ fastify.delete('/api/test-data', async (request, reply) => {
   }
 });
 
-fastify.get('/api/health', async (request, reply) => {
-  return { status: 'ok' };
-});
 
 const start = async () => {
   try {
