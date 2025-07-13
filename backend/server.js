@@ -217,8 +217,18 @@ fastify.delete('/api/test-data', async (request, reply) => {
     const result = await pool.query(
       `DELETE FROM secret_notes WHERE user_id = 'k6_test_user' OR user_id = 'e2e_test_user'`
     );
+
+    const { rows } = await pool.query(`SELECT MAX(id) AS max_id FROM secret_notes`);
+    const maxId = rows[0].max_id || 0;
+
+    await pool.query(`ALTER SEQUENCE secret_notes_id_seq RESTART WITH ${maxId + 1}`);
+
     fastify.log.info(`Cleaned up ${result.rowCount} test notes`);
-    return { message: 'Test data cleaned up successfully', deletedCount: result.rowCount };
+    return {
+      message: 'Test data cleaned up and ID sequence reset successfully',
+      deletedCount: result.rowCount,
+      nextId: maxId + 1
+    };
   } catch (err) {
     fastify.log.error('Error cleaning test data:', err.message);
     return reply.status(500).send({ error: 'Failed to clean test data: ' + err.message });
