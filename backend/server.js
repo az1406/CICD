@@ -228,8 +228,11 @@ fastify.delete('/api/test-data', async (request, reply) => {
 const start = async () => {
   try {
     await initDatabase();
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    fastify.log.info(`Secret Notes Backend running on http://0.0.0.0:3000`);
+
+    const port = process.env.PORT || 3000;
+    await fastify.listen({ port: Number(port), host: '0.0.0.0' });
+
+    fastify.log.info(`Secret Notes Backend running on http://0.0.0.0:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

@@ -175,7 +175,7 @@ jobs:
         run: |
           echo "Waiting for application to be ready..."
           for i in {1..15}; do
-            if curl -f http://${{ env.HOST }}:8180/api/health; then
+            if curl -f http://${{ env.HOST }}/api/health; then
               echo "Application is ready!"
               break
             fi
@@ -186,28 +186,28 @@ jobs:
       - name: Run k6 Smoke Tests (30s)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=http://${{ env.HOST }}:8180 /app/smoke-test.js
+            run --env BASE_URL=http://${{ env.HOST }} /app/smoke-test.js
 
       - name: Run k6 Performance Tests (30s)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=http://${{ env.HOST }}:8180 /app/performance-tests.js
+            run --env BASE_URL=http://${{ env.HOST }} /app/performance-tests.js
 
       - name: Run k6 Load Tests (1m)
         run: |
           docker run --rm -v "$PWD/frontend/__tests__/k6:/app" grafana/k6:1.1.0 \
-            run --env BASE_URL=http://${{ env.HOST }}:8180 /app/load-test.js
+            run --env BASE_URL=http://${{ env.HOST }} /app/load-test.js
 
       - name: Run Playwright E2E tests
         run: npx playwright test __tests__/e2e
         working-directory: ./frontend
         env:
-          E2E_BASE_URL: http://${{ env.HOST }}:8180
-    
+          E2E_BASE_URL: http://${{ env.HOST }}
+      
       - name: Cleanup test data
         if: always()
         run: |
-          curl -X DELETE http://${{ env.HOST }}:8180/api/test-data || echo "Cleanup failed or not available"
+          curl -X DELETE http://${{ env.HOST }}/api/test-data || echo "Cleanup failed or not available"
 
   switch-traffic:
     needs: e2e-performance-test
