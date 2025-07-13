@@ -97,16 +97,15 @@ export default {
   },
 
   mounted() {
-    // Get the experiment variant for the user
-    this.themeVariant = posthog.getFeatureFlagVariant
-      ? posthog.getFeatureFlagVariant('green_theme_experiment') || 'control'
-      : (posthog.isFeatureEnabled('green_theme_experiment') ? 'green_theme' : 'control');
+    // Use the feature flag key, not the experiment name!
+    this.themeVariant = posthog.getFeatureFlag
+      ? posthog.getFeatureFlag('green_theme') || 'control'
+      : 'control';
 
-    // Listen for feature flag/experiment updates
     posthog.onFeatureFlags(() => {
-      this.themeVariant = posthog.getFeatureFlagVariant
-        ? posthog.getFeatureFlagVariant('green_theme_experiment') || 'control'
-        : (posthog.isFeatureEnabled('green_theme_experiment') ? 'green_theme' : 'control');
+      this.themeVariant = posthog.getFeatureFlag
+        ? posthog.getFeatureFlag('green_theme') || 'control'
+        : 'control';
     });
 
     this.fetchNotes();
