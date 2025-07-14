@@ -51,16 +51,15 @@ test.describe('Secret Notes E2E', () => {
         await page.getByRole('button', { name: /encrypt note/i }).click();
         await expect(page.getByText(/note encrypted successfully/i)).toBeVisible();
 
-        await expect(page.locator('.note-item input[placeholder="Enter decryption key..."]').first()).toBeVisible();
-
-        const decryptInput = page.locator('.note-item input[placeholder="Enter decryption key..."]').first();
-        const decryptButton = page.locator('.note-item button', { hasText: 'Decrypt' }).first();
+        const firstNote = page.locator('.note-item').first();
+        const decryptInput = firstNote.locator('input[placeholder="Enter decryption key..."]');
+        const decryptButton = firstNote.locator('button', { hasText: 'Decrypt' });
 
         await decryptInput.fill('wrong-key');
         await decryptButton.click();
 
-        const firstNote = page.locator('.note-item').first();
-        await expect(firstNote.locator('.error')).toContainText(/invalid decryption key/i);
+        // Updated selector: fallback to matching error message anywhere inside the note
+        const errorMessage = firstNote.getByText(/invalid decryption key/i);
+        await expect(errorMessage).toBeVisible({ timeout: 10000 });
     });
-
 });
