@@ -150,13 +150,19 @@ jobs:
       - name: Debug print next_env.txt
         run: |
           ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "cat /tmp/next_env.txt || echo 'File not found'"
+      - name: Copy next_env.txt to home directory
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "cp /tmp/next_env.txt /home/ubuntu/next_env.txt && chmod 644 /home/ubuntu/next_env.txt"
+      - name: Debug print next_env.txt in home directory
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "cat /home/ubuntu/next_env.txt || echo 'File not found'"
       - name: Download next_env.txt
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: /tmp/next_env.txt
+          source: /home/ubuntu/next_env.txt
           target: .
           strip_components: false
           debug: true
