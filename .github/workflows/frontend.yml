@@ -128,9 +128,9 @@ jobs:
             ACTIVE_ENV=$(grep -Po 'set \$active_env "\K(blue|green)' /etc/nginx/conf.d/secret-notes.conf)
             echo "[DEBUG] Detected ACTIVE_ENV: $ACTIVE_ENV"
             if [ "$ACTIVE_ENV" = "blue" ]; then
-              echo "green" > /tmp/next_env.txt
+              echo "green" > /home/ubuntu/next_env.txt
             elif [ "$ACTIVE_ENV" = "green" ]; then
-              echo "blue" > /tmp/next_env.txt
+              echo "blue" > /home/ubuntu/next_env.txt
             else
               echo "[ERROR] Invalid ACTIVE_ENV: $ACTIVE_ENV" >&2
               exit 1
@@ -141,7 +141,7 @@ jobs:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: /tmp/next_env.txt
+          source: /home/ubuntu/next_env.txt
           target: ./next_env.txt
       - name: Set NEXT_ENV output
         id: set-next-env
