@@ -153,7 +153,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: /tmp/next_env.txt
-          target: ./next_env.txt
+          target: .
+          strip_components: 0
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
