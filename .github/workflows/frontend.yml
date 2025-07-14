@@ -139,7 +139,7 @@ jobs:
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > id_rsa
           chmod 600 id_rsa
-      - name: Debug: List /tmp files
+      - name: Debug List /tmp files
         run: |
           ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "ls -l /tmp"
       - name: Download next_env.txt
