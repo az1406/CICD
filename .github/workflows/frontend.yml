@@ -161,11 +161,12 @@ jobs:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: /home/ubuntu/next_env.txt
+          source: next_env.txt
           target: .
           strip_components: 0
           debug: true
           tar_tmp_path: /tmp
+          rm: false
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
