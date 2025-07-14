@@ -11,6 +11,7 @@ env:
   GITHUB_REF_DEPLOY_PRODUCTION: refs/heads/deploy/production
   HOST: 18.204.164.224
   BACKEND_PORT: 3000
+  BACKEND_PORT_GREEN: 3100
   DATABASE_PORT: 5432
   SONARQUBE_PORT: 9000
   JENKINS_PORT: 9090
@@ -116,21 +117,23 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
-    env:
-      DEPLOY_ENV: ${{ github.event.inputs.environment }}
+    strategy:
+      matrix:
+        ENVIRONMENT: [blue, green]
     steps:
-      - name: Deploy to EC2 via SSH (${{ env.DEPLOY_ENV }})
+      - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            if [ "${{ env.DEPLOY_ENV }}" = "blue" ]; then
-              PORT=3000
+            echo "Deploying Backend to ${{ matrix.ENVIRONMENT }}..."
+            if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
+              PORT=${{ env.BACKEND_PORT }}
               NAME=secret-notes-backend-blue
             else
-              PORT=3100
+              PORT=${{ env.BACKEND_PORT_GREEN }}
               NAME=secret-notes-backend-green
             fi
             docker network create secret-notes-network || true
@@ -139,22 +142,13 @@ jobs:
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
-              --network-alias backend-${{ env.DEPLOY_ENV }} \
+              --network-alias backend-${{ matrix.ENVIRONMENT }} \
               -e NODE_ENV=production \
               -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
               -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:${{ env.DATABASE_PORT }}/secret_notes?sslmode=require \
               -p $PORT:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
-      - name: Switch active environment on server
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo /usr/local/bin/switch_env.sh ${{ env.DEPLOY_ENV }}
-      
 
   notify-on-failure:
     needs: [linting, test, build, deliver, deploy]
