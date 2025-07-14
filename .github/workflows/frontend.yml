@@ -136,13 +136,8 @@ jobs:
               exit 1
             fi
       - name: Debug: List /tmp files
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ env.HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            ls -l /tmp
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ env.HOST }} "ls -l /tmp"
       - name: Download next_env.txt
         uses: appleboy/scp-action@v0.1.4
         with:
