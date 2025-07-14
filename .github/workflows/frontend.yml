@@ -129,14 +129,21 @@ jobs:
             echo "[DEBUG] Detected ACTIVE_ENV: $ACTIVE_ENV"
             if [ "$ACTIVE_ENV" = "blue" ]; then
               echo "green"
-            else
+            elif [ "$ACTIVE_ENV" = "green" ]; then
               echo "blue"
+            else
+              echo "[ERROR] Invalid ACTIVE_ENV: $ACTIVE_ENV" >&2
+              exit 1
             fi
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
           echo "[DEBUG] SSH output: '${{ steps.setenv.outputs.stdout }}'"
           NEXT_ENV=$(echo "${{ steps.setenv.outputs.stdout }}" | tr -d '\n' | xargs)
+          if [[ "$NEXT_ENV" != "blue" && "$NEXT_ENV" != "green" ]]; then
+            echo "[ERROR] NEXT_ENV is not blue or green: '$NEXT_ENV'" >&2
+            exit 1
+          fi
           echo "[DEBUG] Trimmed NEXT_ENV: '$NEXT_ENV'"
           echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_OUTPUT
 
