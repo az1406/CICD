@@ -139,7 +139,8 @@ jobs:
     if: github.ref == 'refs/heads/deploy/production'
     strategy:
       matrix:
-        ENVIRONMENT: [${{ needs.get-next-env.outputs.NEXT_ENV }}]
+        include:
+          - ENVIRONMENT: ${{ needs.get-next-env.outputs.NEXT_ENV }}
     steps:
       - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
