@@ -155,6 +155,8 @@ jobs:
           source: /tmp/next_env.txt
           target: .
           strip_components: 0
+          debug: true
+          tar_tmp_path: /tmp
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
