@@ -1,7 +1,7 @@
 app.vue:
 <template>
   <div class="app" :class="{ 'green-theme': isGreenTheme }">
-    <h1>Secret Notes</h1>
+    <h1>Secret Notes - Updated</h1>
 
     <!-- Encryption Container -->
     <div class="encrypt-container">
