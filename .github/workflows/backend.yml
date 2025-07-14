@@ -147,6 +147,9 @@ jobs:
       - name: Make next_env.txt world-readable
         run: |
           ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "chmod 644 /tmp/next_env.txt"
+      - name: Debug print next_env.txt
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "cat /tmp/next_env.txt || echo 'File not found'"
       - name: Download next_env.txt
         uses: appleboy/scp-action@v0.1.4
         with:
