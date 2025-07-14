@@ -1,7 +1,7 @@
 app.vue:
 <template>
   <div class="app" :class="{ 'green-theme': isGreenTheme }">
-    <h1>Secret Notes - Blue</h1>
+    <h1>Secret Notes - Green</h1>
 
     <!-- Encryption Container -->
     <div class="encrypt-container">
@@ -57,8 +57,8 @@ app.vue:
               placeholder="Enter decryption key..."
               @keyup.enter="decryptNote(note)"
             />
-            <button @click="decryptNote(note)" :disabled="loading" class="btn-secondary">
-              Decrypt
+            <button @click="decryptNote(note)" :disabled="note.loading" class="btn-secondary">
+              {{ note.loading ? 'Decrypting...' : 'Decrypt' }}
             </button>
           </div>
 
@@ -184,14 +184,15 @@ export default {
             decrypted: false,
             decryptKey: '',
             content: '',
-            error: null
+            error: null,
+            loading: false // add per-note loading
           }));
         } else {
           console.error('Error fetching notes:', data.error);
         }
       } catch (error) {
         console.error('Failed to fetch note:', error);
-        note.error = 'Network error. Please try again.';
+        // note.error = 'Network error. Please try again.'; // Remove, note is not defined here
       } finally {
         this.loading = false;
       }
@@ -203,7 +204,7 @@ export default {
         return;
       }
 
-      this.loading = true;
+      note.loading = true;
       note.error = null;
 
       try {
@@ -224,14 +225,13 @@ export default {
             note_id: note.id
           });
         } else {
-          // Always set the error message from backend, fallback if missing
           note.error = data && data.error ? data.error : 'Failed to decrypt note';
         }
       } catch (error) {
         console.error('Failed to decrypt note:', error);
         note.error = 'Network error. Please try again.';
       } finally {
-        this.loading = false;
+        note.loading = false;
       }
     },
 
