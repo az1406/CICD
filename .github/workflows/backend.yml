@@ -85,36 +85,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          push: false
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
-
-  deliver:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Push Docker image
+      - name: Build Docker image (blue)
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v4
         with:
           context: ./backend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:blue
+
+      - name: Build Docker image (green)
+        if: github.ref == 'refs/heads/deploy/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:green
 
   deploy:
-    needs: deliver
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
     strategy:
@@ -132,13 +120,15 @@ jobs:
             if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
               PORT=${{ env.BACKEND_PORT }}
               NAME=secret-notes-backend-blue
+              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:blue
             else
               PORT=${{ env.BACKEND_PORT_GREEN }}
               NAME=secret-notes-backend-green
+              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:green
             fi
             docker network create secret-notes-network || true
             docker rm -f $NAME || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+            docker pull $IMAGE
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
@@ -147,7 +137,7 @@ jobs:
               -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
               -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:${{ env.DATABASE_PORT }}/secret_notes?sslmode=require \
               -p $PORT:3000 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
+              $IMAGE
 
 
   notify-on-failure:

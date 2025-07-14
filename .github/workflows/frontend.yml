@@ -84,36 +84,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          push: false
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
-
-  deliver:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy/production'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Push Docker image
+      - name: Build Docker image (blue)
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:blue
+
+      - name: Build Docker image (green)
+        if: github.ref == 'refs/heads/deploy/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:green
 
   deploy:
-    needs: deliver
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
     strategy:
@@ -131,20 +119,22 @@ jobs:
             if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
               PORT=${{ env.FRONTEND_PORT }}
               NAME=secret-notes-frontend-blue
+              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:blue
             else
               PORT=${{ env.FRONTEND_PORT_GREEN }}
               NAME=secret-notes-frontend-green
+              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:green
             fi
             docker network create secret-notes-network || true
             docker rm -f $NAME || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+            docker pull $IMAGE
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
               --network-alias frontend-${{ matrix.ENVIRONMENT }} \
               -e NODE_ENV=production \
               -p $PORT:80 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+              $IMAGE
 
   e2e-performance-test:
     needs: deploy
