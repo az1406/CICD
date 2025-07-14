@@ -51,7 +51,7 @@ jobs:
       - name: Snyk Test (Code & Dependencies)
         working-directory: ./backend
         run: snyk test --all-projects
-  
+
   test:
     needs: linting
     runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
       - name: Run tests
         run: npm test -- --watchAll=false
         working-directory: ./backend
-  
+
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -116,18 +116,17 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
-    strategy:
-      matrix:
-        ENVIRONMENT: [blue, green]
+    env:
+      DEPLOY_ENV: ${{ github.event.inputs.environment }}
     steps:
-      - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
+      - name: Deploy to EC2 via SSH (${{ env.DEPLOY_ENV }})
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
+            if [ "${{ env.DEPLOY_ENV }}" = "blue" ]; then
               PORT=3000
               NAME=secret-notes-backend-blue
             else
@@ -140,15 +139,25 @@ jobs:
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
-              --network-alias backend-${{ matrix.ENVIRONMENT }} \
+              --network-alias backend-${{ env.DEPLOY_ENV }} \
               -e NODE_ENV=production \
               -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
               -e DATABASE_URL=postgres://postgres:postgres@secret-notes-db.ci4bvrmai3fb.us-east-1.rds.amazonaws.com:${{ env.DATABASE_PORT }}/secret_notes?sslmode=require \
               -p $PORT:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-backend:latest
 
+      - name: Switch active environment on server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo /usr/local/bin/switch_env.sh ${{ env.DEPLOY_ENV }}
+      
+
   notify-on-failure:
-    needs: [ linting, test, build, deliver, deploy]
+    needs: [linting, test, build, deliver, deploy]
     if: failure()
     runs-on: ubuntu-latest
     steps:
@@ -157,4 +166,3 @@ jobs:
           curl -X POST -H 'Content-type: application/json' --data '{
             "text": "*CI/CD Pipeline Failed!*\n*Pipeline failed for* `${{ github.repository }}` on branch `${{ github.ref_name }}`\n*Workflow:* `${{ github.workflow }}`\n*Commit:* `${{ github.event.head_commit.message }}`\n*Author:* `${{ github.event.head_commit.author.name }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
           }' ${{ secrets.SLACK_WEBHOOK_URL }}
-          

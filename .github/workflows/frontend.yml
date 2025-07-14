@@ -52,25 +52,25 @@ jobs:
         run: snyk test --all-projects
 
   test:
-        needs: linting
-        runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
-        steps:
-          - name: Checkout code
-            uses: actions/checkout@v3
+    needs: linting
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-          - name: Set up Node.js
-            uses: actions/setup-node@v3
-            with:
-              node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-          - name: Install dependencies
-            run: npm install
-            working-directory: ./frontend
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
 
-          - name: Run tests
-            run: npm test
-            working-directory: ./frontend
+      - name: Run tests
+        run: npm test
+        working-directory: ./frontend
 
   build:
     needs: test
@@ -115,18 +115,17 @@ jobs:
     needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
-    strategy:
-      matrix:
-        ENVIRONMENT: [blue, green]
+    env:
+      DEPLOY_ENV: ${{ github.event.inputs.environment }}
     steps:
-      - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
+      - name: Deploy to EC2 via SSH (${{ env.DEPLOY_ENV }})
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
+            if [ "${{ env.DEPLOY_ENV }}" = "blue" ]; then
               PORT=8080
               NAME=secret-notes-frontend-blue
               BACKEND_PORT=3000
@@ -141,11 +140,20 @@ jobs:
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
-              --network-alias frontend-${{ matrix.ENVIRONMENT }} \
+              --network-alias frontend-${{ env.DEPLOY_ENV }} \
               -e NODE_ENV=production \
               -e BACKEND_PORT=$BACKEND_PORT \
               -p $PORT:80 \
               ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
+
+      - name: Switch active environment on server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo /usr/local/bin/switch_env.sh ${{ env.DEPLOY_ENV }}
 
   e2e-performance-test:
     needs: deploy
@@ -203,7 +211,7 @@ jobs:
         working-directory: ./frontend
         env:
           E2E_BASE_URL: http://${{ env.HOST }}
-      
+
       - name: Cleanup test data
         if: always()
         run: |
