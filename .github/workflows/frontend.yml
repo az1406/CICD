@@ -128,24 +128,30 @@ jobs:
             ACTIVE_ENV=$(grep -Po 'set \$active_env "\K(blue|green)' /etc/nginx/conf.d/secret-notes.conf)
             echo "[DEBUG] Detected ACTIVE_ENV: $ACTIVE_ENV"
             if [ "$ACTIVE_ENV" = "blue" ]; then
-              echo "green"
+              echo "green" > /tmp/next_env.txt
             elif [ "$ACTIVE_ENV" = "green" ]; then
-              echo "blue"
+              echo "blue" > /tmp/next_env.txt
             else
               echo "[ERROR] Invalid ACTIVE_ENV: $ACTIVE_ENV" >&2
               exit 1
             fi
-          script_output: true
+      - name: Download next_env.txt
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: /tmp/next_env.txt
+          target: ./next_env.txt
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
-          echo "[DEBUG] SSH output: '${{ steps.setenv.outputs.output }}'"
-          NEXT_ENV=$(echo "${{ steps.setenv.outputs.output }}" | grep -E '^(blue|green)$' | tr -d '\n' | xargs)
+          NEXT_ENV=$(cat ./next_env.txt | grep -E '^(blue|green)$' | tr -d '\n' | xargs)
+          echo "[DEBUG] Downloaded NEXT_ENV: '$NEXT_ENV'"
           if [[ "$NEXT_ENV" != "blue" && "$NEXT_ENV" != "green" ]]; then
             echo "[ERROR] NEXT_ENV is not blue or green: '$NEXT_ENV'" >&2
             exit 1
           fi
-          echo "[DEBUG] Trimmed NEXT_ENV: '$NEXT_ENV'"
           echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_OUTPUT
 
   deploy:
