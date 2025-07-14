@@ -11,7 +11,6 @@ env:
   GITHUB_REF_DEPLOY_PRODUCTION: refs/heads/deploy/production
   HOST: 18.204.164.224
   FRONTEND_PORT: 8080
-  FRONTEND_PORT_GREEN: 8180
   SONARQUBE_PORT: 9000
   JENKINS_PORT: 9090
 
@@ -84,29 +83,41 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image (blue)
-        if: github.ref == 'refs/heads/main'
+      - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:blue
+          push: false
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
-      - name: Build Docker image (green)
-        if: github.ref == 'refs/heads/deploy/production'
+  deliver:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Push Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:green
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
   deploy:
-    needs: build
+    needs: deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
     strategy:
       matrix:
-        ENVIRONMENT: [blue, green]
+        ENVIRONMENT: [green] 
     steps:
       - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
@@ -115,26 +126,26 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "Deploying Frontend to ${{ matrix.ENVIRONMENT }}..."
             if [ "${{ matrix.ENVIRONMENT }}" = "blue" ]; then
-              PORT=${{ env.FRONTEND_PORT }}
+              PORT=8080
               NAME=secret-notes-frontend-blue
-              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:blue
+              BACKEND_PORT=3000
             else
-              PORT=${{ env.FRONTEND_PORT_GREEN }}
+              PORT=8180
               NAME=secret-notes-frontend-green
-              IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:green
+              BACKEND_PORT=3100
             fi
             docker network create secret-notes-network || true
             docker rm -f $NAME || true
-            docker pull $IMAGE
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
             docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
               --network-alias frontend-${{ matrix.ENVIRONMENT }} \
               -e NODE_ENV=production \
+              -e BACKEND_PORT=$BACKEND_PORT \
               -p $PORT:80 \
-              $IMAGE
+              ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
   e2e-performance-test:
     needs: deploy
@@ -192,7 +203,7 @@ jobs:
         working-directory: ./frontend
         env:
           E2E_BASE_URL: http://${{ env.HOST }}
-
+      
       - name: Cleanup test data
         if: always()
         run: |
