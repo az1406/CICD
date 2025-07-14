@@ -151,6 +151,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: /tmp/next_env.txt
           target: ./next_env.txt
+      - name: Make next_env.txt world-readable
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ./id_rsa ubuntu@${{ env.HOST }} "chmod 644 /tmp/next_env.txt"
       - name: Set NEXT_ENV output
         id: set-next-env
         run: |
