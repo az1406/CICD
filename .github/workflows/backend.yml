@@ -127,6 +127,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             ACTIVE_ENV=$(grep -Po 'set \$active_env "\K(blue|green)' /etc/nginx/nginx.conf)
+            echo "[DEBUG] Detected ACTIVE_ENV: $ACTIVE_ENV"
             if [ "$ACTIVE_ENV" = "blue" ]; then
               echo "green"
             else
@@ -134,7 +135,11 @@ jobs:
             fi
       - name: Set NEXT_ENV output
         id: set-next-env
-        run: echo "NEXT_ENV=${{ steps.setenv.outputs.stdout }}" >> $GITHUB_OUTPUT
+        run: |
+          echo "[DEBUG] SSH output: '${{ steps.setenv.outputs.stdout }}'"
+          NEXT_ENV=$(echo "${{ steps.setenv.outputs.stdout }}" | tr -d '\n' | xargs)
+          echo "[DEBUG] Trimmed NEXT_ENV: '$NEXT_ENV'"
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_OUTPUT
 
   deploy:
     needs: [deliver, get-next-env]
