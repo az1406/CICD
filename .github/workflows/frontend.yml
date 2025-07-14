@@ -138,7 +138,7 @@ jobs:
             docker network create secret-notes-network || true
             docker rm -f $NAME || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
-            docker run -d \
+            docker run -d --rm \
               --name $NAME \
               --network secret-notes-network \
               --network-alias frontend-${{ matrix.ENVIRONMENT }} \
