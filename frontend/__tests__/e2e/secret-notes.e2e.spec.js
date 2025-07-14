@@ -60,7 +60,7 @@ test.describe('Secret Notes E2E', () => {
         await decryptButton.click();
 
         const firstNote = page.locator('.note-item').first();
-        await expect(firstNote.getByText(/invalid decryption key/i)).toBeVisible();
+        await expect(firstNote.locator('.error')).toContainText(/invalid decryption key/i);
     });
 
 });
