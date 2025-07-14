@@ -116,9 +116,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
     outputs:
-      NEXT_ENV: ${{ steps.setenv.outputs.NEXT_ENV }}
+      NEXT_ENV: ${{ steps.set-next-env.outputs.NEXT_ENV }}
     steps:
-      - name: Get active_env from nginx.conf
+      - name: Get next environment from nginx.conf
         id: setenv
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -128,10 +128,13 @@ jobs:
           script: |
             ACTIVE_ENV=$(grep -Po 'set \$active_env "\K(blue|green)' /etc/nginx/nginx.conf)
             if [ "$ACTIVE_ENV" = "blue" ]; then
-              echo "NEXT_ENV=green" >> $GITHUB_OUTPUT
+              echo "green"
             else
-              echo "NEXT_ENV=blue" >> $GITHUB_OUTPUT
+              echo "blue"
             fi
+      - name: Set NEXT_ENV output
+        id: set-next-env
+        run: echo "NEXT_ENV=${{ steps.setenv.outputs.stdout }}" >> $GITHUB_OUTPUT
 
   deploy:
     needs: [deliver, get-next-env]
