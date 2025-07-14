@@ -125,7 +125,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            ACTIVE_ENV=$(grep -Po 'set\s+\$active_env\s*["'\''']\K(blue|green)' /etc/nginx/conf.d/secret-notes.conf)
+            ACTIVE_ENV=$(grep -Po "set\s+\$active_env\s*['\"]\K(blue|green)" /etc/nginx/conf.d/secret-notes.conf)
             echo "[DEBUG] NGINX LINE: $(grep active_env /etc/nginx/conf.d/secret-notes.conf)"
             echo "[DEBUG] Detected ACTIVE_ENV: $ACTIVE_ENV"
             if [ "$ACTIVE_ENV" = "blue" ]; then
