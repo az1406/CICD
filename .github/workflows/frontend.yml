@@ -111,13 +111,34 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/secret-notes-frontend:latest
 
+  get-next-env:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/deploy/production'
+    outputs:
+      NEXT_ENV: ${{ steps.setenv.outputs.NEXT_ENV }}
+    steps:
+      - name: Get active_env from nginx.conf
+        id: setenv
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            ACTIVE_ENV=$(grep -Po 'set \$active_env "\K(blue|green)' /etc/nginx/nginx.conf)
+            if [ "$ACTIVE_ENV" = "blue" ]; then
+              echo "NEXT_ENV=green" >> $GITHUB_OUTPUT
+            else
+              echo "NEXT_ENV=blue" >> $GITHUB_OUTPUT
+            fi
+
   deploy:
-    needs: deliver
+    needs: [deliver, get-next-env]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/deploy/production'
     strategy:
       matrix:
-        ENVIRONMENT: [green] 
+        ENVIRONMENT: [${{ needs.get-next-env.outputs.NEXT_ENV }}]
     steps:
       - name: Deploy to EC2 via SSH (${{ matrix.ENVIRONMENT }})
         uses: appleboy/ssh-action@v0.1.7
